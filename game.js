@@ -313,44 +313,81 @@ function drawCuteGirl(x, y, facing, frame) {
   }
 
   // Shadow
-  drawPixelRect(2, 38, 24, 4, "rgba(0,0,0,0.2)");
+  drawPixelRect(2, 38, 24, 4, "rgba(0,0,0,0.25)");
 
-  // Hair Back
-  drawPixelRect(2, 6 + bounce, 24, 22, "#4a2810");
+  // Billowing White Knight Cape behind
+  const capeWave = (frame % 2 === 1 && player.vx !== 0) ? -3 : 0;
+  drawPixelRect(-2 + capeWave, 16 + bounce, 7, 20, "#f8fafc");
+  drawPixelRect(0 + capeWave, 18 + bounce, 8, 19, "#e2e8f0");
+  drawPixelRect(-4 + capeWave, 22 + bounce, 5, 12, "#cbd5e1");
 
-  // Legs / Shoes
+  // Cute Tabby Tail
+  const tailBob = Math.sin((frame + performance.now() * 0.005) * 4) * 2;
+  drawPixelRect(-4, 28 + bounce + tailBob, 4, 4, "#eed9c4");
+  drawPixelRect(-6, 26 + bounce + tailBob, 3, 3, "#a06c3f");
+
+  // Armored Sabatons / Greaves (Legs)
   const legOffset = (frame % 2 === 1 && player.vx !== 0) ? 3 : 0;
-  drawPixelRect(6, 32, 6, 8 - legOffset, "#333");
-  drawPixelRect(16, 32, 6, 8 + legOffset, "#333");
-  drawPixelRect(4, 38, 8, 4, "#ff70a6");
-  drawPixelRect(16, 38, 8, 4, "#ff70a6");
+  drawPixelRect(6, 32, 6, 8 - legOffset, "#64748b");
+  drawPixelRect(16, 32, 6, 8 + legOffset, "#64748b");
+  drawPixelRect(4, 38, 8, 4, "#94a3b8");
+  drawPixelRect(16, 38, 8, 4, "#94a3b8");
 
-  // Dress (Cute Pink Pastel)
-  drawPixelRect(5, 20 + bounce, 18, 14, "#ff85a1");
-  drawPixelRect(3, 28 + bounce, 22, 6, "#ff6392");
-  drawPixelRect(9, 20 + bounce, 10, 3, "#fff");
+  // Steel Plate Armor (Breastplate)
+  drawPixelRect(5, 18 + bounce, 18, 14, "#94a3b8");
+  drawPixelRect(7, 19 + bounce, 14, 12, "#cbd5e1");
+  drawPixelRect(9, 21 + bounce, 10, 3, "#f8fafc"); // polished steel sheen
+  drawPixelRect(11, 26 + bounce, 6, 4, "#64748b");
 
-  // Head / Skin
-  drawPixelRect(6, 4 + bounce, 16, 16, "#ffdfba");
+  // Pauldrons (Shoulder Armor)
+  drawPixelRect(2, 17 + bounce, 5, 6, "#64748b");
+  drawPixelRect(21, 17 + bounce, 5, 6, "#64748b");
 
-  // Cheeks (blush)
-  drawPixelRect(7, 14 + bounce, 3, 2, "#ff9ebb");
-  drawPixelRect(18, 14 + bounce, 3, 2, "#ff9ebb");
+  // Tabby Kitten Head (Cream & Soft Brown Fur)
+  drawPixelRect(5, 4 + bounce, 18, 14, "#eed9c4");
+  drawPixelRect(3, 7 + bounce, 22, 10, "#eed9c4"); // chubby kitten cheeks
 
-  // Eyes
-  drawPixelRect(10, 11 + bounce, 2, 4, "#2d3436");
-  drawPixelRect(16, 11 + bounce, 2, 4, "#2d3436");
-  drawPixelRect(11, 11 + bounce, 1, 2, "#fff");
-  drawPixelRect(17, 11 + bounce, 1, 2, "#fff");
+  // Tabby Fur Markings
+  drawPixelRect(10, 4 + bounce, 2, 4, "#a06c3f");
+  drawPixelRect(16, 4 + bounce, 2, 4, "#a06c3f");
+  drawPixelRect(13, 5 + bounce, 2, 3, "#a06c3f");
 
-  // Hair Bangs & Front
-  drawPixelRect(4, 2 + bounce, 20, 6, "#5c3317");
-  drawPixelRect(4, 8 + bounce, 4, 8, "#5c3317");
-  drawPixelRect(20, 8 + bounce, 4, 8, "#5c3317");
+  // Pointy Kitten Ears
+  drawPixelRect(4, 0 + bounce, 4, 5, "#eed9c4");
+  drawPixelRect(5, 1 + bounce, 2, 3, "#ffccd5"); // pink inner ear
+  drawPixelRect(20, 0 + bounce, 4, 5, "#eed9c4");
+  drawPixelRect(21, 1 + bounce, 2, 3, "#ffccd5");
 
-  // Ribbon Hairclip
-  drawPixelRect(18, 2 + bounce, 6, 4, "#e63946");
-  drawPixelRect(20, 1 + bounce, 2, 6, "#ff4d6d");
+  // Pink Flower / Ribbon on Forehead (Identik dengan foto!)
+  drawPixelRect(12, 1 + bounce, 4, 4, "#ff70a6");
+  drawPixelRect(13, 2 + bounce, 2, 2, "#ff0a54");
+  drawPixelRect(10, 2 + bounce, 2, 2, "#ffccd5");
+  drawPixelRect(16, 2 + bounce, 2, 2, "#ffccd5");
+
+  // Big Emerald Green Kitten Eyes
+  drawPixelRect(8, 10 + bounce, 3, 4, "#2b9348");
+  drawPixelRect(9, 10 + bounce, 1, 3, "#111827");
+  drawPixelRect(8, 10 + bounce, 1, 1, "#ffffff");
+  drawPixelRect(17, 10 + bounce, 3, 4, "#2b9348");
+  drawPixelRect(18, 10 + bounce, 1, 3, "#111827");
+  drawPixelRect(17, 10 + bounce, 1, 1, "#ffffff");
+
+  // Cute Pink Kitten Nose & Whiskers
+  drawPixelRect(13, 13 + bounce, 2, 2, "#ff758f");
+  drawPixelRect(4, 12 + bounce, 3, 1, "#a06c3f");
+  drawPixelRect(21, 12 + bounce, 3, 1, "#a06c3f");
+
+  // Upright European Longsword held in Armored Paws
+  // Armored Gauntlets
+  drawPixelRect(11, 23 + bounce, 6, 5, "#64748b");
+  // Gold Crossguard
+  drawPixelRect(8, 20 + bounce, 12, 3, "#ffd166");
+  // Long Steel Blade held upright
+  drawPixelRect(12, 3 + bounce, 4, 17, "#e2e8f0");
+  drawPixelRect(13, 1 + bounce, 2, 19, "#ffffff"); // silver gleam
+  drawPixelRect(13, -1 + bounce, 2, 2, "#cbd5e1"); // sword tip
+  // Gold Pommel
+  drawPixelRect(12, 28 + bounce, 4, 3, "#ffd166");
 
   // Invulnerability blink effect
   if (player.invulnerableTimer > 0 && Math.floor(player.invulnerableTimer / 4) % 2 === 0) {
@@ -1109,9 +1146,11 @@ function renderCelebration() {
   });
 
   const coupleY = isPortraitMode ? 610 : 330;
+  // Boyfriend and Knight Kitten Hero together
   drawBoyfriend(cakeCenterX - 110, coupleY, "right");
   drawCuteGirl(cakeCenterX - 50, coupleY, "left", 0);
 
+  // Big glowing heart above them
   const pulse = Math.sin(performance.now() * 0.005) * 4;
   drawPixelRect(cakeCenterX - 80 - pulse / 2, coupleY - 45 - pulse / 2, 20 + pulse, 20 + pulse, "#ff0054");
 
@@ -1166,10 +1205,22 @@ function renderHUD() {
   ctx.font = "11px 'Courier New', monospace";
   ctx.textAlign = "left";
 
-  const stage = stages[currentLevel - 1];
-  ctx.fillText(stage.name, 16, 30);
+  // Knight Hero Avatar on HUD
+  const knightAvatar = photoImages[0]; // fallback
+  ctx.fillStyle = "#ffd166";
+  ctx.fillRect(16, 12, 28, 28);
+  ctx.fillStyle = "#ff70a6";
+  ctx.fillRect(18, 14, 24, 24);
 
-  ctx.fillText(`Kunci: ${keysCount}/3`, 260, 30);
+  // Avatar text / icon
+  ctx.fillStyle = "#fff";
+  ctx.font = "14px sans-serif";
+  ctx.fillText("🐱", 22, 31);
+
+  const stage = stages[currentLevel - 1];
+  ctx.fillText(stage.name, 52, 30);
+
+  ctx.fillText(`Kunci: ${keysCount}/3`, 280, 30);
 
   if (player.starPowerTimer > 0) {
     const sec = Math.ceil(player.starPowerTimer / 60);
