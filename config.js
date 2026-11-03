@@ -57,6 +57,12 @@ const CONFIG = {
       note: "Senyum paling mempesona yang selalu bikin hari-hariku cerah! I love your pretty smile! 😁💖",
       photo: "assets/photos/photo_2026-11-03_09-28-48.jpg"
     },
+    { 
+      type: "finish_medal", 
+      name: "Medali Marathon 90s Vibes", 
+      note: "Lari bareng sampai garis finish & dapet medali berdua! Kita selalu kompak dalam segala hal! 🏃‍♀️🏃‍♂️🏅",
+      photo: "assets/photos/photo_2026-11-03_09-28-52.jpg"
+    },
   ],
 
   // Galeri Foto Lengkap

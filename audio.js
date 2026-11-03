@@ -78,6 +78,18 @@ class RetroAudio {
     this.playTone(880.00, "square", 0.25, 0.24, 0.18);
   }
 
+  stomp() {
+    this.playTone(300, "square", 0.06, 0, 0.16);
+    this.playTone(450, "square", 0.08, 0.05, 0.18);
+  }
+
+  powerUp() {
+    this.playTone(400, "triangle", 0.08, 0, 0.15);
+    this.playTone(550, "triangle", 0.08, 0.06, 0.15);
+    this.playTone(700, "triangle", 0.08, 0.12, 0.18);
+    this.playTone(900, "square", 0.2, 0.18, 0.2);
+  }
+
   hurt() {
     this.playTone(220, "sawtooth", 0.12, 0, 0.15);
     this.playTone(160, "sawtooth", 0.15, 0.08, 0.15);

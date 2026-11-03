@@ -1,17 +1,37 @@
 // ==========================================
-// BIRTHDAY QUEST - MAIN GAME ENGINE
+// BIRTHDAY QUEST - 5 STAGES RETRO GAME ENGINE
 // ==========================================
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const GAME_WIDTH = 800;
-const GAME_HEIGHT = 450;
-canvas.width = GAME_WIDTH;
-canvas.height = GAME_HEIGHT;
+// Responsive resolution calculation
+let GAME_WIDTH = 800;
+let GAME_HEIGHT = 450;
+let isPortraitMode = false;
+
+function updateCanvasResolution() {
+  const isPortrait = window.matchMedia("(max-width: 768px) and (orientation: portrait), (max-width: 600px)").matches;
+  if (isPortrait) {
+    // 9:16 Portrait
+    GAME_WIDTH = 450;
+    GAME_HEIGHT = 800;
+    isPortraitMode = true;
+  } else {
+    // 16:9 Landscape
+    GAME_WIDTH = 800;
+    GAME_HEIGHT = 450;
+    isPortraitMode = false;
+  }
+  canvas.width = GAME_WIDTH;
+  canvas.height = GAME_HEIGHT;
+}
+updateCanvasResolution();
+window.addEventListener("resize", updateCanvasResolution);
 
 let gameState = "INTRO";
 let currentLevel = 1;
+const MAX_STAGES = 5;
 let collectedItems = [];
 let keysCount = 0;
 let keysNeeded = 3;
@@ -35,14 +55,14 @@ const photoImages = CONFIG.gallery.map(src => {
 
 // Floating clouds carrying couple photos
 const floatingClouds = [
-  { x: 120, y: 65, speed: 0.35, photoIndex: 0, bobPhase: 0, scale: 0.95 },
-  { x: 480, y: 110, speed: 0.25, photoIndex: 1, bobPhase: 1.2, scale: 0.85 },
-  { x: 840, y: 60, speed: 0.4, photoIndex: 2, bobPhase: 2.5, scale: 1.0 },
-  { x: 1200, y: 115, speed: 0.3, photoIndex: 3, bobPhase: 3.8, scale: 0.9 },
-  { x: 1560, y: 75, speed: 0.38, photoIndex: 4, bobPhase: 0.8, scale: 1.05 },
-  { x: 1920, y: 110, speed: 0.28, photoIndex: 5, bobPhase: 4.5, scale: 0.88 },
-  { x: 2280, y: 70, speed: 0.32, photoIndex: 6, bobPhase: 2.1, scale: 0.95 },
-  { x: 2640, y: 105, speed: 0.36, photoIndex: 7, bobPhase: 5.2, scale: 1.0 },
+  { x: 120, y: 70, speed: 0.35, photoIndex: 0, bobPhase: 0, scale: 0.95 },
+  { x: 500, y: 120, speed: 0.25, photoIndex: 1, bobPhase: 1.2, scale: 0.85 },
+  { x: 880, y: 65, speed: 0.4, photoIndex: 2, bobPhase: 2.5, scale: 1.0 },
+  { x: 1260, y: 130, speed: 0.3, photoIndex: 3, bobPhase: 3.8, scale: 0.9 },
+  { x: 1640, y: 80, speed: 0.38, photoIndex: 4, bobPhase: 0.8, scale: 1.05 },
+  { x: 2020, y: 125, speed: 0.28, photoIndex: 5, bobPhase: 4.5, scale: 0.88 },
+  { x: 2400, y: 75, speed: 0.32, photoIndex: 6, bobPhase: 2.1, scale: 0.95 },
+  { x: 2780, y: 110, speed: 0.36, photoIndex: 7, bobPhase: 5.2, scale: 1.0 },
 ];
 
 // Input handler
@@ -60,80 +80,190 @@ const player = {
   vy: 0,
   width: 28,
   height: 40,
-  speed: 3.5,
-  jumpPower: -9.5,
+  speed: 3.6,
+  jumpPower: -9.8,
   grounded: false,
   facing: "right",
   frame: 0,
   frameTimer: 0,
-  invulnerableTimer: 0
+  invulnerableTimer: 0,
+  starPowerTimer: 0 // Invicibility powerup
 };
 
 // Projectiles thrown by enemy cats
 let catClaws = [];
 
-// Level definitions
-const level1 = {
-  width: 2400,
-  platforms: [
-    { x: 0, y: 380, w: 700, h: 70 },
-    { x: 200, y: 300, w: 120, h: 20 },
-    { x: 380, y: 240, w: 140, h: 20 },
-    { x: 580, y: 310, w: 100, h: 20 },
-    { x: 750, y: 380, w: 800, h: 70 },
-    { x: 880, y: 280, w: 140, h: 20 },
-    { x: 1100, y: 220, w: 140, h: 20 },
-    { x: 1300, y: 290, w: 150, h: 20 },
-    { x: 1600, y: 380, w: 800, h: 70 },
-    { x: 1750, y: 290, w: 120, h: 20 },
-    { x: 1950, y: 230, w: 130, h: 20 },
-    { x: 2150, y: 300, w: 150, h: 20 },
-  ],
-  items: [
-    { type: "boba", x: 440, y: 200, collected: false },
-    { type: "flower", x: 940, y: 240, collected: false },
-    { type: "letter", x: 1160, y: 180, collected: false },
-    { type: "cat", x: 2000, y: 190, collected: false },
-  ],
-  cats: [
-    { x: 820, y: 356, minX: 770, maxX: 980, vx: 1.2, width: 28, height: 24, throwCooldown: 90, facing: "right", frame: 0 },
-    { x: 1320, y: 266, minX: 1300, maxX: 1440, vx: -1.0, width: 28, height: 24, throwCooldown: 120, facing: "left", frame: 0 },
-    { x: 1700, y: 356, minX: 1620, maxX: 1880, vx: 1.3, width: 28, height: 24, throwCooldown: 80, facing: "right", frame: 0 }
-  ],
-  portal: { x: 2300, y: 300, w: 50, h: 80, text: "NEXT STAGE ->" }
-};
+// ==========================================
+// 5 DISTINCT STAGE DEFINITIONS
+// ==========================================
 
-const level2 = {
-  width: 2600,
-  platforms: [
-    { x: 0, y: 380, w: 500, h: 70 },
-    { x: 220, y: 290, w: 130, h: 20 },
-    { x: 420, y: 220, w: 140, h: 20 },
-    { x: 620, y: 170, w: 140, h: 20 },
-    { x: 820, y: 260, w: 150, h: 20 },
-    { x: 1050, y: 380, w: 500, h: 70 },
-    { x: 1200, y: 270, w: 130, h: 20 },
-    { x: 1400, y: 190, w: 140, h: 20 },
-    { x: 1650, y: 250, w: 140, h: 20 },
-    { x: 1850, y: 320, w: 150, h: 20 },
-    { x: 2050, y: 380, w: 550, h: 70 },
-    { x: 2200, y: 270, w: 140, h: 20 },
-  ],
-  items: [
-    { type: "key1", x: 680, y: 130, collected: false },
-    { type: "key2", x: 1460, y: 150, collected: false },
-    { type: "key3", x: 2260, y: 230, collected: false },
-  ],
-  cats: [
-    { x: 840, y: 236, minX: 820, maxX: 960, vx: 1.2, width: 28, height: 24, throwCooldown: 75, facing: "right", frame: 0 },
-    { x: 1100, y: 356, minX: 1060, maxX: 1240, vx: 1.4, width: 28, height: 24, throwCooldown: 85, facing: "right", frame: 0 },
-    { x: 1660, y: 226, minX: 1650, maxX: 1780, vx: -1.1, width: 28, height: 24, throwCooldown: 95, facing: "left", frame: 0 },
-    { x: 2100, y: 356, minX: 2060, maxX: 2300, vx: 1.3, width: 28, height: 24, throwCooldown: 80, facing: "right", frame: 0 }
-  ],
-  gate: { x: 2450, y: 280, w: 60, h: 100, locked: true }
-};
+const stages = [
+  // STAGE 1: Memory Lane I (Udon & Manyun Photos)
+  {
+    name: "STAGE 1: Memory Lane I",
+    width: 2200,
+    platforms: [
+      { x: 0, y: 380, w: 700, h: 70 },
+      { x: 220, y: 300, w: 120, h: 20 },
+      { x: 400, y: 240, w: 140, h: 20 },
+      { x: 620, y: 310, w: 110, h: 20 },
+      { x: 780, y: 380, w: 750, h: 70 },
+      { x: 920, y: 280, w: 140, h: 20 },
+      { x: 1150, y: 220, w: 150, h: 20 },
+      { x: 1360, y: 290, w: 140, h: 20 },
+      { x: 1580, y: 380, w: 650, h: 70 },
+      { x: 1760, y: 290, w: 130, h: 20 },
+      { x: 1960, y: 230, w: 140, h: 20 }
+    ],
+    items: [
+      { type: "boba", x: 450, y: 200, collected: false },
+      { type: "flower", x: 1200, y: 180, collected: false }
+    ],
+    powerups: [
+      { type: "star", x: 970, y: 240, collected: false }
+    ],
+    cats: [
+      { x: 840, y: 356, minX: 790, maxX: 1000, vx: 1.1, width: 28, height: 24, throwCooldown: 100, facing: "right", frame: 0, alive: true },
+      { x: 1640, y: 356, minX: 1590, maxX: 1800, vx: 1.2, width: 28, height: 24, throwCooldown: 90, facing: "right", frame: 0, alive: true }
+    ],
+    portal: { x: 2100, y: 300, w: 50, h: 80, text: "STAGE 2 ->" }
+  },
 
-// Stage 3: Celebration Room
+  // STAGE 2: Mischief & Fun (Skeptical & Video Call Photos)
+  {
+    name: "STAGE 2: Video Call & Mischief",
+    width: 2400,
+    platforms: [
+      { x: 0, y: 380, w: 550, h: 70 },
+      { x: 180, y: 290, w: 130, h: 20 },
+      { x: 380, y: 220, w: 140, h: 20 },
+      { x: 580, y: 290, w: 140, h: 20 },
+      { x: 780, y: 380, w: 650, h: 70 },
+      { x: 940, y: 270, w: 130, h: 20 },
+      { x: 1140, y: 200, w: 140, h: 20 },
+      { x: 1340, y: 280, w: 130, h: 20 },
+      { x: 1520, y: 380, w: 900, h: 70 },
+      { x: 1700, y: 290, w: 140, h: 20 },
+      { x: 1920, y: 220, w: 150, h: 20 },
+      { x: 2140, y: 290, w: 130, h: 20 }
+    ],
+    items: [
+      { type: "letter", x: 430, y: 180, collected: false },
+      { type: "cat", x: 1190, y: 160, collected: false }
+    ],
+    powerups: [
+      { type: "star", x: 1750, y: 250, collected: false }
+    ],
+    cats: [
+      { x: 820, y: 356, minX: 790, maxX: 1020, vx: 1.3, width: 28, height: 24, throwCooldown: 80, facing: "right", frame: 0, alive: true },
+      { x: 1360, y: 256, minX: 1340, maxX: 1460, vx: -1.0, width: 28, height: 24, throwCooldown: 90, facing: "left", frame: 0, alive: true },
+      { x: 1600, y: 356, minX: 1540, maxX: 1840, vx: 1.4, width: 28, height: 24, throwCooldown: 75, facing: "right", frame: 0, alive: true }
+    ],
+    portal: { x: 2300, y: 300, w: 50, h: 80, text: "STAGE 3 ->" }
+  },
+
+  // STAGE 3: Matcha Festival Walk (Boba & Winky Face Photo)
+  {
+    name: "STAGE 3: Matcha Festival Walk",
+    width: 2500,
+    platforms: [
+      { x: 0, y: 380, w: 500, h: 70 },
+      { x: 200, y: 290, w: 120, h: 20 },
+      { x: 380, y: 210, w: 130, h: 20 },
+      { x: 570, y: 160, w: 140, h: 20 },
+      { x: 770, y: 240, w: 140, h: 20 },
+      { x: 970, y: 380, w: 600, h: 70 },
+      { x: 1120, y: 280, w: 130, h: 20 },
+      { x: 1320, y: 200, w: 140, h: 20 },
+      { x: 1540, y: 270, w: 140, h: 20 },
+      { x: 1750, y: 380, w: 750, h: 70 },
+      { x: 1920, y: 290, w: 140, h: 20 },
+      { x: 2140, y: 220, w: 150, h: 20 }
+    ],
+    items: [
+      { type: "key1", x: 620, y: 120, collected: false }
+    ],
+    powerups: [
+      { type: "star", x: 1370, y: 160, collected: false }
+    ],
+    cats: [
+      { x: 1000, y: 356, minX: 980, maxX: 1220, vx: 1.4, width: 28, height: 24, throwCooldown: 70, facing: "right", frame: 0, alive: true },
+      { x: 1560, y: 246, minX: 1540, maxX: 1660, vx: -1.2, width: 28, height: 24, throwCooldown: 85, facing: "left", frame: 0, alive: true },
+      { x: 1820, y: 356, minX: 1770, maxX: 2020, vx: 1.5, width: 28, height: 24, throwCooldown: 75, facing: "right", frame: 0, alive: true }
+    ],
+    portal: { x: 2380, y: 300, w: 50, h: 80, text: "STAGE 4 ->" }
+  },
+
+  // STAGE 4: Cafe Haven & Garden (Candid Cafe & Behel Photos)
+  {
+    name: "STAGE 4: Cafe Haven & Garden",
+    width: 2600,
+    platforms: [
+      { x: 0, y: 380, w: 450, h: 70 },
+      { x: 180, y: 290, w: 130, h: 20 },
+      { x: 360, y: 210, w: 140, h: 20 },
+      { x: 560, y: 150, w: 150, h: 20 },
+      { x: 780, y: 250, w: 140, h: 20 },
+      { x: 980, y: 380, w: 550, h: 70 },
+      { x: 1140, y: 280, w: 140, h: 20 },
+      { x: 1340, y: 200, w: 150, h: 20 },
+      { x: 1560, y: 260, w: 140, h: 20 },
+      { x: 1760, y: 380, w: 850, h: 70 },
+      { x: 1950, y: 280, w: 140, h: 20 },
+      { x: 2180, y: 210, w: 150, h: 20 },
+      { x: 2380, y: 290, w: 130, h: 20 }
+    ],
+    items: [
+      { type: "key2", x: 610, y: 110, collected: false },
+      { type: "key3", x: 1400, y: 160, collected: false }
+    ],
+    powerups: [
+      { type: "star", x: 1990, y: 240, collected: false }
+    ],
+    cats: [
+      { x: 800, y: 226, minX: 780, maxX: 900, vx: 1.2, width: 28, height: 24, throwCooldown: 80, facing: "right", frame: 0, alive: true },
+      { x: 1020, y: 356, minX: 990, maxX: 1240, vx: 1.4, width: 28, height: 24, throwCooldown: 70, facing: "right", frame: 0, alive: true },
+      { x: 1800, y: 356, minX: 1770, maxX: 2050, vx: 1.5, width: 28, height: 24, throwCooldown: 65, facing: "right", frame: 0, alive: true },
+      { x: 2200, y: 186, minX: 2180, maxX: 2310, vx: -1.1, width: 28, height: 24, throwCooldown: 75, facing: "left", frame: 0, alive: true }
+    ],
+    portal: { x: 2500, y: 300, w: 50, h: 80, text: "STAGE 5 ->" }
+  },
+
+  // STAGE 5: Castle of 19 December (Grand Finale Gate + Marathon Medal)
+  {
+    name: "STAGE 5: Castle of 19 December",
+    width: 2700,
+    platforms: [
+      { x: 0, y: 380, w: 500, h: 70 },
+      { x: 220, y: 290, w: 130, h: 20 },
+      { x: 420, y: 220, w: 140, h: 20 },
+      { x: 620, y: 160, w: 150, h: 20 },
+      { x: 840, y: 250, w: 140, h: 20 },
+      { x: 1050, y: 380, w: 550, h: 70 },
+      { x: 1220, y: 270, w: 140, h: 20 },
+      { x: 1440, y: 190, w: 150, h: 20 },
+      { x: 1680, y: 260, w: 140, h: 20 },
+      { x: 1880, y: 330, w: 150, h: 20 },
+      { x: 2080, y: 380, w: 620, h: 70 },
+      { x: 2250, y: 280, w: 140, h: 20 }
+    ],
+    items: [
+      { type: "finish_medal", x: 670, y: 120, collected: false }
+    ],
+    powerups: [
+      { type: "star", x: 1490, y: 150, collected: false }
+    ],
+    cats: [
+      { x: 860, y: 226, minX: 840, maxX: 960, vx: 1.3, width: 28, height: 24, throwCooldown: 70, facing: "right", frame: 0, alive: true },
+      { x: 1100, y: 356, minX: 1060, maxX: 1280, vx: 1.6, width: 28, height: 24, throwCooldown: 60, facing: "right", frame: 0, alive: true },
+      { x: 1700, y: 236, minX: 1680, maxX: 1800, vx: -1.3, width: 28, height: 24, throwCooldown: 75, facing: "left", frame: 0, alive: true },
+      { x: 2120, y: 356, minX: 2090, maxX: 2340, vx: 1.5, width: 28, height: 24, throwCooldown: 65, facing: "right", frame: 0, alive: true }
+    ],
+    gate: { x: 2520, y: 280, w: 60, h: 100, locked: true }
+  }
+];
+
+// STAGE 6: Grand Celebration Room
 const celebration = {
   cake: { x: 400, y: 260, w: 140, h: 120 },
   candles: [
@@ -146,13 +276,15 @@ const celebration = {
   candlesBlown: false
 };
 
-// Drawing Helpers
+// ==========================================
+// DRAWING HELPERS & PROCEDURAL SPRITES
+// ==========================================
+
 function drawPixelRect(x, y, w, h, color) {
   ctx.fillStyle = color;
   ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
 }
 
-// Procedural Sprite Rendering
 function drawCuteGirl(x, y, facing, frame) {
   ctx.save();
   ctx.translate(Math.floor(x), Math.floor(y));
@@ -162,6 +294,23 @@ function drawCuteGirl(x, y, facing, frame) {
   }
 
   const bounce = (frame % 2 === 1 && player.vx !== 0) ? -2 : 0;
+
+  // Star Invincibility Aura Glow
+  if (player.starPowerTimer > 0) {
+    const rainbowHue = (performance.now() * 0.5) % 360;
+    ctx.fillStyle = `hsla(${rainbowHue}, 100%, 65%, 0.45)`;
+    ctx.beginPath();
+    ctx.arc(player.width / 2, player.height / 2 + bounce, 24, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Orbiting sparks
+    for (let i = 0; i < 3; i++) {
+      const angle = (performance.now() * 0.008) + (i * Math.PI * 2 / 3);
+      const sx = player.width / 2 + Math.cos(angle) * 22;
+      const sy = player.height / 2 + Math.sin(angle) * 22;
+      drawPixelRect(sx - 2, sy - 2, 4, 4, "#ffd166");
+    }
+  }
 
   // Shadow
   drawPixelRect(2, 38, 24, 4, "rgba(0,0,0,0.2)");
@@ -176,7 +325,7 @@ function drawCuteGirl(x, y, facing, frame) {
   drawPixelRect(4, 38, 8, 4, "#ff70a6");
   drawPixelRect(16, 38, 8, 4, "#ff70a6");
 
-  // Dress
+  // Dress (Cute Pink Pastel)
   drawPixelRect(5, 20 + bounce, 18, 14, "#ff85a1");
   drawPixelRect(3, 28 + bounce, 22, 6, "#ff6392");
   drawPixelRect(9, 20 + bounce, 10, 3, "#fff");
@@ -184,7 +333,7 @@ function drawCuteGirl(x, y, facing, frame) {
   // Head / Skin
   drawPixelRect(6, 4 + bounce, 16, 16, "#ffdfba");
 
-  // Cheeks
+  // Cheeks (blush)
   drawPixelRect(7, 14 + bounce, 3, 2, "#ff9ebb");
   drawPixelRect(18, 14 + bounce, 3, 2, "#ff9ebb");
 
@@ -243,8 +392,8 @@ function drawBoyfriend(x, y, facing) {
   ctx.restore();
 }
 
-// Draw Walking Enemy NPC Cat
 function drawEnemyCat(cat) {
+  if (!cat.alive) return;
   ctx.save();
   ctx.translate(Math.floor(cat.x), Math.floor(cat.y));
   if (cat.facing === "right") {
@@ -254,12 +403,11 @@ function drawEnemyCat(cat) {
 
   const bounce = (Math.floor(cat.frame) % 2 === 1) ? -1 : 0;
 
-  // Shadow
   drawPixelRect(2, 22, 24, 3, "rgba(0,0,0,0.25)");
 
-  // Calico / Mischievous Dark Orange Body
+  // Orange Body
   drawPixelRect(4, 8 + bounce, 18, 12, "#e76f51");
-  drawPixelRect(8, 10 + bounce, 6, 6, "#f4a261"); // lighter belly patch
+  drawPixelRect(8, 10 + bounce, 6, 6, "#f4a261");
 
   // Head
   drawPixelRect(16, 4 + bounce, 12, 11, "#e76f51");
@@ -268,11 +416,10 @@ function drawEnemyCat(cat) {
   drawPixelRect(18, 0 + bounce, 3, 4, "#d90429");
   drawPixelRect(25, 0 + bounce, 3, 4, "#d90429");
 
-  // Sneaky / Angry Cat Eyes (glowing yellow/green with slit pupil)
+  // Cat Eyes
   drawPixelRect(22, 7 + bounce, 3, 3, "#ffea00");
   drawPixelRect(23, 7 + bounce, 1, 3, "#111111");
 
-  // Mischievous smirk / nose
   drawPixelRect(26, 9 + bounce, 2, 2, "#9d0208");
 
   // Legs walking
@@ -280,12 +427,12 @@ function drawEnemyCat(cat) {
   drawPixelRect(6 + legShift, 20, 4, 3, "#bc4749");
   drawPixelRect(14 - legShift, 20, 4, 3, "#bc4749");
 
-  // Curved Tail wagging
+  // Tail
   const tailBob = Math.sin(cat.frame * 0.4) * 2;
   drawPixelRect(1, 4 + bounce + tailBob, 3, 8, "#e76f51");
   drawPixelRect(0, 2 + bounce + tailBob, 3, 3, "#f4a261");
 
-  // Poison aura / skull smoke above cat
+  // Poison aura
   if (Math.floor(cat.frame * 0.5) % 2 === 0) {
     drawPixelRect(14, -6, 3, 3, "#a7c957");
     drawPixelRect(20, -8, 2, 2, "#70e000");
@@ -294,26 +441,47 @@ function drawEnemyCat(cat) {
   ctx.restore();
 }
 
-// Draw Flying Poison Claw Projectile
 function drawPoisonClaw(claw) {
   ctx.save();
   ctx.translate(Math.floor(claw.x), Math.floor(claw.y));
   ctx.rotate(claw.rotation);
 
-  // 3 Curved Poisonous Claws
-  ctx.fillStyle = "#38b000"; // Toxic green glow
+  ctx.fillStyle = "#38b000";
   ctx.fillRect(-6, -6, 12, 12);
-
   ctx.fillStyle = "#9ef01a";
   ctx.fillRect(-4, -4, 8, 8);
-
   ctx.fillStyle = "#ffffff";
-  // 3 sharp claw tips
   ctx.fillRect(-5, -5, 2, 4);
   ctx.fillRect(-1, -6, 2, 5);
   ctx.fillRect(3, -5, 2, 4);
 
   ctx.restore();
+}
+
+function drawPowerupSprite(type, x, y, time) {
+  const bob = Math.sin(time * 0.008) * 4;
+  const drawY = y + bob;
+
+  if (type === "star") {
+    // Super Star / Rainbow Shield Powerup
+    const rainbowColors = ["#ff0054", "#ffb703", "#06d6a0", "#118ab2", "#9b5de5"];
+    const col = rainbowColors[Math.floor((time / 120) % rainbowColors.length)];
+
+    // Star 5-points pixel shape
+    drawPixelRect(x + 8, drawY, 8, 20, col);
+    drawPixelRect(x, drawY + 6, 24, 8, col);
+    drawPixelRect(x + 4, drawY + 4, 16, 12, "#fff");
+
+    // Star Cute Eyes
+    drawPixelRect(x + 9, drawY + 8, 2, 4, "#111");
+    drawPixelRect(x + 13, drawY + 8, 2, 4, "#111");
+
+    // Star Aura
+    ctx.fillStyle = "rgba(255, 214, 10, 0.4)";
+    ctx.beginPath();
+    ctx.arc(x + 12, drawY + 10, 16, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 function drawItemSprite(type, x, y, time) {
@@ -351,6 +519,14 @@ function drawItemSprite(type, x, y, time) {
     drawPixelRect(x + 13, drawY + 8, 10, 4, "#ffb703");
     drawPixelRect(x + 19, drawY + 12, 4, 4, "#fb8500");
     drawPixelRect(x + 15, drawY + 12, 3, 3, "#fb8500");
+  } else if (type === "finish_medal") {
+    // Marathon Ribbon
+    drawPixelRect(x + 8, drawY + 2, 4, 10, "#e63946");
+    drawPixelRect(x + 14, drawY + 2, 4, 10, "#1d3557");
+    // Gold Medal Circle
+    drawPixelRect(x + 5, drawY + 10, 16, 16, "#ffb703");
+    drawPixelRect(x + 7, drawY + 12, 12, 12, "#ffd166");
+    drawPixelRect(x + 11, drawY + 14, 4, 8, "#d4a373");
   }
 
   if (Math.floor(time / 200) % 2 === 0) {
@@ -409,7 +585,10 @@ function showMemoryPopup(item) {
   }
 }
 
-// Update game physics & interactions
+// ==========================================
+// PHYSICS, STOMP & GAME LOGIC
+// ==========================================
+
 function updateGame() {
   if (gameState !== "PLAYING") return;
 
@@ -443,9 +622,10 @@ function updateGame() {
   player.x += player.vx;
   player.y += player.vy;
 
-  const currentStage = (currentLevel === 1) ? level1 : level2;
+  const currentStage = stages[currentLevel - 1];
   player.grounded = false;
 
+  // Platform collision
   for (let plat of currentStage.platforms) {
     if (
       player.x + player.width > plat.x &&
@@ -460,6 +640,13 @@ function updateGame() {
     }
   }
 
+  // Mobile portrait bottom floor platform safety
+  if (isPortraitMode && player.y >= 700) {
+    player.y = 700;
+    player.vy = 0;
+    player.grounded = true;
+  }
+
   if (player.y > GAME_HEIGHT) {
     player.x = 60;
     player.y = 200;
@@ -470,9 +657,15 @@ function updateGame() {
     player.invulnerableTimer--;
   }
 
-  // Update Cat NPCs (Patrol, Animate & Throw Poison Claws)
+  if (player.starPowerTimer > 0) {
+    player.starPowerTimer--;
+  }
+
+  // Update Cat NPCs (Patrol, Mario Stomp & Toxic Claws)
   if (currentStage.cats) {
     currentStage.cats.forEach(cat => {
+      if (!cat.alive) return;
+
       cat.x += cat.vx;
       cat.frame += 0.15;
       if (cat.x < cat.minX) {
@@ -488,7 +681,7 @@ function updateGame() {
       // Throw poisonous claws towards player if within range
       cat.throwCooldown--;
       const distToPlayer = Math.hypot((player.x + player.width / 2) - (cat.x + cat.width / 2), (player.y + player.height / 2) - (cat.y + cat.height / 2));
-      if (distToPlayer < 400 && cat.throwCooldown <= 0) {
+      if (distToPlayer < 380 && cat.throwCooldown <= 0) {
         cat.throwCooldown = 90 + Math.floor(Math.random() * 40);
         const dir = (player.x > cat.x) ? 1 : -1;
         cat.facing = (dir === 1) ? "right" : "left";
@@ -504,14 +697,24 @@ function updateGame() {
         audio.clawWhoosh();
       }
 
-      // Direct collision with cat
-      if (player.invulnerableTimer <= 0) {
-        if (
-          player.x + player.width > cat.x &&
-          player.x < cat.x + cat.width &&
-          player.y + player.height > cat.y &&
-          player.y < cat.y + cat.height
-        ) {
+      // Check Collision with player
+      const overlapX = player.x + player.width > cat.x && player.x < cat.x + cat.width;
+      const overlapY = player.y + player.height > cat.y && player.y < cat.y + cat.height;
+
+      if (overlapX && overlapY) {
+        // MARIO STOMP CHECK: Falling down on top of the cat!
+        const playerBottom = player.y + player.height;
+        const catTop = cat.y;
+        const isLandingOnTop = (player.vy > 0 && playerBottom <= catTop + 16);
+
+        if (isLandingOnTop || player.starPowerTimer > 0) {
+          // KILLS THE CAT!
+          cat.alive = false;
+          audio.stomp();
+          player.vy = -7.5; // Mario bounce up!
+          addSparkles(cat.x + cat.width / 2, cat.y + cat.height / 2, "#ffd166", 20);
+          showFloatingNote("POOF! Kucing nakal berhasil diinjek! 🐾✨");
+        } else if (player.invulnerableTimer <= 0) {
           triggerPlayerHurt();
         }
       }
@@ -527,7 +730,6 @@ function updateGame() {
     claw.rotation += claw.rotSpeed;
     claw.life--;
 
-    // Toxic green sparkle trail
     if (Math.random() < 0.4) {
       particles.push({
         x: claw.x,
@@ -541,7 +743,7 @@ function updateGame() {
     }
 
     // Check hit player
-    if (player.invulnerableTimer <= 0) {
+    if (player.invulnerableTimer <= 0 && player.starPowerTimer <= 0) {
       if (
         claw.x > player.x &&
         claw.x < player.x + player.width &&
@@ -553,6 +755,18 @@ function updateGame() {
         catClaws.splice(i, 1);
         continue;
       }
+    } else if (player.starPowerTimer > 0) {
+      // Shield vaporizes poison claws!
+      if (
+        claw.x > player.x &&
+        claw.x < player.x + player.width &&
+        claw.y > player.y &&
+        claw.y < player.y + player.height
+      ) {
+        addSparkles(claw.x, claw.y, "#ffd166", 6);
+        catClaws.splice(i, 1);
+        continue;
+      }
     }
 
     if (claw.life <= 0 || claw.y > GAME_HEIGHT) {
@@ -560,10 +774,12 @@ function updateGame() {
     }
   }
 
+  // Camera follows player
   const targetCamX = player.x - GAME_WIDTH / 2;
   cameraX += (targetCamX - cameraX) * 0.1;
   cameraX = Math.max(0, Math.min(cameraX, currentStage.width - GAME_WIDTH));
 
+  // Collectibles check
   currentStage.items.forEach(item => {
     if (!item.collected) {
       const dist = Math.hypot((player.x + player.width / 2) - (item.x + 12), (player.y + player.height / 2) - (item.y + 12));
@@ -582,7 +798,7 @@ function updateGame() {
           audio.key();
           if (keysCount >= keysNeeded && currentStage.gate) {
             currentStage.gate.locked = false;
-            showFloatingNote("Semua kunci terkumpul! Gerbang terbuka!");
+            showFloatingNote("Semua 3 Kunci Emas terkumpul! Gerbang Istana Terbuka!");
           }
         } else {
           audio.collect();
@@ -592,26 +808,44 @@ function updateGame() {
     }
   });
 
-  if (currentLevel === 1) {
-    const p = level1.portal;
+  // Powerups check (Super Star Invincibility)
+  if (currentStage.powerups) {
+    currentStage.powerups.forEach(pow => {
+      if (!pow.collected) {
+        const dist = Math.hypot((player.x + player.width / 2) - (pow.x + 12), (player.y + player.height / 2) - (pow.y + 12));
+        if (dist < 28) {
+          pow.collected = true;
+          audio.powerUp();
+          player.starPowerTimer = 480; // ~8 seconds invincibility!
+          addSparkles(pow.x + 12, pow.y + 12, "#ffd166", 30);
+          showFloatingNote("⭐ STAR SHIELD! Kamu Kebal & Bisa Injek Kucing Sepuasnya! ⭐");
+        }
+      }
+    });
+  }
+
+  // Stage Portals Progression (Stage 1 to 4)
+  if (currentStage.portal) {
+    const p = currentStage.portal;
     if (player.x + player.width > p.x && player.x < p.x + p.w && player.y + player.height > p.y) {
-      currentLevel = 2;
+      currentLevel++;
       player.x = 60;
       player.y = 250;
       catClaws = [];
       cameraX = 0;
-      showFloatingNote("STAGE 2: Temukan 3 Kunci Emas! Awas kucing jahil bertambah! 🐱⚡");
       audio.key();
+      showFloatingNote(`${stages[currentLevel - 1].name}! Semangat terus sayang! ❤️`);
     }
   }
 
-  if (currentLevel === 2) {
-    const g = level2.gate;
+  // Stage 5 Final Birthday Gate
+  if (currentStage.gate) {
+    const g = currentStage.gate;
     if (player.x + player.width > g.x && player.x < g.x + g.w && player.y + player.height > g.y) {
       if (!g.locked) {
         enterCelebration();
       } else {
-        showFloatingNote("Gerbang terkunci! Kumpulkan 3 Kunci Emas dulu!");
+        showFloatingNote(`Gerbang terkunci! Kumpulkan semua 3 Kunci Emas dulu! (${keysCount}/3)`);
       }
     }
   }
@@ -620,13 +854,10 @@ function updateGame() {
 function triggerPlayerHurt() {
   player.invulnerableTimer = 60; // 1 second invulnerability
   audio.hurt();
-  showFloatingNote("Aww! Kena cakar kuku beracun! Hati-hati sayang! 🐾⚡");
+  showFloatingNote("Aww! Kena cakar kuku beracun! Injek kucingnya dari atas sayang! 🐾⚡");
 
-  // Knockback opposite to facing direction
   player.vy = -5.5;
   player.vx = (player.facing === "right") ? -4 : 4;
-
-  // Hurt sparkles
   addSparkles(player.x + player.width / 2, player.y + player.height / 2, "#9ef01a", 16);
 }
 
@@ -643,10 +874,14 @@ function enterCelebration() {
 
   setInterval(() => {
     if (gameState === "WON") {
-      addFirework(150 + Math.random() * 500, 80 + Math.random() * 150);
+      addFirework(150 + Math.random() * (GAME_WIDTH - 300), 80 + Math.random() * 150);
     }
-  }, 500);
+  }, 450);
 }
+
+// ==========================================
+// RENDERING WORLD & BACKGROUND
+// ==========================================
 
 function drawPhotoCloud(cloud, time) {
   const totalWorldWidth = 2800;
@@ -660,7 +895,6 @@ function drawPhotoCloud(cloud, time) {
   ctx.translate(screenX, drawY);
   ctx.scale(cloud.scale, cloud.scale);
 
-  // Soft glowing white cloud puffs
   ctx.fillStyle = "rgba(255, 255, 255, 0.93)";
   ctx.beginPath();
   ctx.arc(-38, 8, 28, 0, Math.PI * 2);
@@ -670,13 +904,11 @@ function drawPhotoCloud(cloud, time) {
   ctx.arc(8, 16, 30, 0, Math.PI * 2);
   ctx.fill();
 
-  // Photo circle frame in center of cloud
   const img = photoImages[cloud.photoIndex % photoImages.length];
   const photoRadius = 24;
   const photoCenterX = 5;
   const photoCenterY = 2;
 
-  // Gold & pink border around photo
   ctx.beginPath();
   ctx.arc(photoCenterX, photoCenterY, photoRadius + 3, 0, Math.PI * 2);
   ctx.fillStyle = "#ffd166";
@@ -685,7 +917,6 @@ function drawPhotoCloud(cloud, time) {
   ctx.strokeStyle = "#ff70a6";
   ctx.stroke();
 
-  // Clipped circular photo
   if (img && img.complete && img.naturalWidth > 0) {
     ctx.save();
     ctx.beginPath();
@@ -699,7 +930,6 @@ function drawPhotoCloud(cloud, time) {
     ctx.restore();
   }
 
-  // Cute heart icon
   ctx.fillStyle = "#ff0054";
   ctx.font = "bold 13px sans-serif";
   ctx.fillText("❤️", photoCenterX + 14, photoCenterY - 14);
@@ -715,7 +945,6 @@ function renderBackground(time = performance.now()) {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-  // Background distant clouds
   ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
   for (let i = 0; i < 5; i++) {
     const cx = ((i * 450 - cameraX * 0.15) % (GAME_WIDTH + 200)) - 100;
@@ -727,7 +956,6 @@ function renderBackground(time = performance.now()) {
     ctx.fill();
   }
 
-  // Floating Photo Clouds
   floatingClouds.forEach(cloud => {
     drawPhotoCloud(cloud, time);
   });
@@ -737,8 +965,9 @@ function renderWorld() {
   ctx.save();
   ctx.translate(-Math.floor(cameraX), 0);
 
-  const stage = (currentLevel === 1) ? level1 : level2;
+  const stage = stages[currentLevel - 1];
 
+  // Platforms
   for (let plat of stage.platforms) {
     drawPixelRect(plat.x, plat.y, plat.w, 6, "#6a994e");
     drawPixelRect(plat.x, plat.y + 6, plat.w, plat.h - 6, "#8c6239");
@@ -748,22 +977,43 @@ function renderWorld() {
     }
   }
 
+  // Mobile portrait bottom ground filler
+  if (isPortraitMode) {
+    drawPixelRect(0, 740, stage.width, 60, "#6a994e");
+    drawPixelRect(0, 746, stage.width, 54, "#8c6239");
+  }
+
   const now = performance.now();
+
+  // Collectibles
   for (let item of stage.items) {
     if (!item.collected) {
       drawItemSprite(item.type, item.x, item.y, now);
     }
   }
 
-  if (currentLevel === 1) {
-    const p = level1.portal;
+  // Powerups (Star)
+  if (stage.powerups) {
+    for (let pow of stage.powerups) {
+      if (!pow.collected) {
+        drawPowerupSprite(pow.type, pow.x, pow.y, now);
+      }
+    }
+  }
+
+  // Portal
+  if (stage.portal) {
+    const p = stage.portal;
     drawPixelRect(p.x, p.y, p.w, p.h, "#9b5de5");
     drawPixelRect(p.x + 6, p.y + 6, p.w - 12, p.h - 12, "#f15bb5");
     ctx.fillStyle = "#fff";
     ctx.font = "10px monospace";
     ctx.fillText("NEXT", p.x + 12, p.y - 10);
-  } else if (currentLevel === 2) {
-    const g = level2.gate;
+  }
+
+  // Gate on Stage 5
+  if (stage.gate) {
+    const g = stage.gate;
     const gateCol = g.locked ? "#d90429" : "#38b000";
     drawPixelRect(g.x, g.y, g.w, g.h, gateCol);
     drawPixelRect(g.x + 8, g.y + 8, g.w - 16, g.h - 16, "#ffe3e0");
@@ -773,18 +1023,19 @@ function renderWorld() {
     ctx.fillText(g.locked ? `LOCKED (${keysCount}/3)` : "OPEN!", g.x - 5, g.y - 12);
   }
 
-  // Draw Enemy NPC Cats
+  // Enemy Cats
   if (stage.cats) {
     stage.cats.forEach(cat => {
       drawEnemyCat(cat);
     });
   }
 
-  // Draw Poison Claws
+  // Poison Claws
   catClaws.forEach(claw => {
     drawPoisonClaw(claw);
   });
 
+  // Player
   drawCuteGirl(player.x, player.y, player.facing, player.frame);
 
   ctx.restore();
@@ -794,7 +1045,8 @@ function renderCelebration() {
   ctx.fillStyle = "#fefae0";
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-  drawPixelRect(0, 370, GAME_WIDTH, 80, "#dda15e");
+  const floorY = isPortraitMode ? 650 : 370;
+  drawPixelRect(0, floorY, GAME_WIDTH, GAME_HEIGHT - floorY, "#dda15e");
   const colors = ["#ff70a6", "#70d6ff", "#ffd670", "#e9ff70", "#ff9770"];
   for (let i = 0; i < GAME_WIDTH; i += 30) {
     const col = colors[(i / 30) % colors.length];
@@ -807,16 +1059,32 @@ function renderCelebration() {
     ctx.fill();
   }
 
-  const cake = celebration.cake;
-  drawPixelRect(cake.x - 20, cake.y + 50, cake.w + 40, 60, "#ffb4a2");
-  drawPixelRect(cake.x - 20, cake.y + 50, cake.w + 40, 10, "#ffffff");
-  drawPixelRect(cake.x + 10, cake.y, cake.w - 20, 50, "#e5989b");
-  drawPixelRect(cake.x + 10, cake.y, cake.w - 20, 10, "#ffffff");
-  for (let sx = cake.x + 18; sx < cake.x + cake.w - 10; sx += 22) {
-    drawPixelRect(sx, cake.y - 6, 8, 8, "#d90429");
+  const cakeCenterX = GAME_WIDTH / 2;
+  const cakeCenterY = isPortraitMode ? 520 : 260;
+
+  // Giant Birthday Cake
+  const cakeW = 140;
+  // Tier 1 (bottom)
+  drawPixelRect(cakeCenterX - 90, cakeCenterY + 50, cakeW + 40, 60, "#ffb4a2");
+  drawPixelRect(cakeCenterX - 90, cakeCenterY + 50, cakeW + 40, 10, "#ffffff");
+  // Tier 2 (top)
+  drawPixelRect(cakeCenterX - 60, cakeCenterY, cakeW - 20, 50, "#e5989b");
+  drawPixelRect(cakeCenterX - 60, cakeCenterY, cakeW - 20, 10, "#ffffff");
+  for (let sx = cakeCenterX - 52; sx < cakeCenterX + cakeW - 80; sx += 22) {
+    drawPixelRect(sx, cakeCenterY - 6, 8, 8, "#d90429");
   }
 
-  celebration.candles.forEach((c) => {
+  // Candles
+  const candlePositions = [
+    { x: cakeCenterX - 40, y: cakeCenterY - 20 },
+    { x: cakeCenterX, y: cakeCenterY - 25 },
+    { x: cakeCenterX + 40, y: cakeCenterY - 20 }
+  ];
+
+  celebration.candles.forEach((c, idx) => {
+    c.x = candlePositions[idx].x;
+    c.y = candlePositions[idx].y;
+
     drawPixelRect(c.x, c.y, 8, 25, "#ffe6a7");
     if (c.lit) {
       const flicker = Math.sin(performance.now() * 0.02 + c.x) * 2;
@@ -828,19 +1096,20 @@ function renderCelebration() {
     }
   });
 
-  drawBoyfriend(celebration.boyfriend.x, celebration.boyfriend.y, "right");
-  drawCuteGirl(celebration.girl.x, celebration.girl.y, "left", 0);
+  const coupleY = isPortraitMode ? 610 : 330;
+  drawBoyfriend(cakeCenterX - 110, coupleY, "right");
+  drawCuteGirl(cakeCenterX - 50, coupleY, "left", 0);
 
   const pulse = Math.sin(performance.now() * 0.005) * 4;
-  drawPixelRect(310 - pulse / 2, 280 - pulse / 2, 20 + pulse, 20 + pulse, "#ff0054");
+  drawPixelRect(cakeCenterX - 80 - pulse / 2, coupleY - 45 - pulse / 2, 20 + pulse, 20 + pulse, "#ff0054");
 
   ctx.fillStyle = "#2b2d42";
   ctx.font = "bold 14px 'Courier New', monospace";
   ctx.textAlign = "center";
   if (!celebration.candlesBlown) {
-    ctx.fillText("✨ KLIK LILIN DI ATAS KUE UNTUK TIUP LILIN! ✨", GAME_WIDTH / 2, 120);
+    ctx.fillText("✨ KLIK LILIN DI ATAS KUE UNTUK TIUP LILIN! ✨", GAME_WIDTH / 2, isPortraitMode ? 180 : 120);
   } else {
-    ctx.fillText("🎉 SELAMAT ULANG TAHUN SAYANG! 🎉", GAME_WIDTH / 2, 120);
+    ctx.fillText("🎉 SELAMAT ULANG TAHUN SAYANG! 🎉", GAME_WIDTH / 2, isPortraitMode ? 180 : 120);
   }
 }
 
@@ -878,38 +1147,42 @@ function renderParticles() {
 function renderHUD() {
   if (gameState !== "PLAYING") return;
 
-  ctx.fillStyle = "rgba(0,0,0,0.45)";
-  ctx.fillRect(10, 10, GAME_WIDTH - 20, 36);
+  ctx.fillStyle = "rgba(0,0,0,0.5)";
+  ctx.fillRect(8, 8, GAME_WIDTH - 16, 36);
 
   ctx.fillStyle = "#fff";
-  ctx.font = "12px 'Courier New', monospace";
+  ctx.font = "11px 'Courier New', monospace";
   ctx.textAlign = "left";
 
-  const stageText = currentLevel === 1 ? "STAGE 1: Memory Lane" : "STAGE 2: Golden Keys";
-  ctx.fillText(stageText, 24, 32);
+  const stage = stages[currentLevel - 1];
+  ctx.fillText(stage.name, 16, 30);
 
-  if (currentLevel === 1) {
-    ctx.fillText(`Memori: ${collectedItems.length}/4`, 220, 32);
-  } else {
-    ctx.fillText(`Kunci Emas: ${keysCount}/3`, 220, 32);
+  ctx.fillText(`Kunci: ${keysCount}/3`, 260, 30);
+
+  if (player.starPowerTimer > 0) {
+    const sec = Math.ceil(player.starPowerTimer / 60);
+    ctx.fillStyle = "#ffea00";
+    ctx.fillText(`⭐ KEBAL: ${sec}s`, 360, 30);
   }
 
+  ctx.fillStyle = "#fff";
   ctx.textAlign = "right";
-  ctx.fillText(`Ultah: ${CONFIG.birthdayDate}`, GAME_WIDTH - 24, 32);
+  ctx.fillText(`Ultah: ${CONFIG.birthdayDate}`, GAME_WIDTH - 16, 30);
 
   if (activeMessage && messageTimer > 0) {
     messageTimer--;
     const alpha = Math.min(1, messageTimer / 30);
-    ctx.fillStyle = `rgba(38, 70, 83, ${0.85 * alpha})`;
-    ctx.fillRect(40, GAME_HEIGHT - 60, GAME_WIDTH - 80, 40);
+    ctx.fillStyle = `rgba(38, 70, 83, ${0.88 * alpha})`;
+    ctx.fillRect(20, GAME_HEIGHT - 65, GAME_WIDTH - 40, 42);
 
     ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-    ctx.font = "bold 13px 'Courier New', monospace";
+    ctx.font = "bold 12px 'Courier New', monospace";
     ctx.textAlign = "center";
-    ctx.fillText(activeMessage, GAME_WIDTH / 2, GAME_HEIGHT - 35);
+    ctx.fillText(activeMessage, GAME_WIDTH / 2, GAME_HEIGHT - 39);
   }
 }
 
+// Candle Click Handler
 canvas.addEventListener("click", (e) => {
   if (gameState === "INTRO") {
     startGame();
@@ -936,7 +1209,7 @@ canvas.addEventListener("click", (e) => {
       celebration.candlesBlown = true;
       for (let i = 0; i < 5; i++) {
         setTimeout(() => {
-          addFirework(200 + Math.random() * 400, 100 + Math.random() * 100);
+          addFirework(150 + Math.random() * (GAME_WIDTH - 300), 100 + Math.random() * 100);
         }, i * 300);
       }
       setTimeout(() => {
@@ -956,12 +1229,12 @@ function startGame() {
   gameState = "PLAYING";
   document.getElementById("startOverlay").classList.add("hidden");
   audio.startBGM();
-  showFloatingNote("Gunakan Tombol Panah / WASD untuk jalan dan melompat!");
+  showFloatingNote("Injek kucing dari atas buat ngalahin mereka! Ambil ⭐ Bintang biar Kebal!");
 }
 
 let lastFrameTime = performance.now();
 let accumulator = 0;
-const FIXED_STEP = 1000 / 60; // Standard 60 FPS physics
+const FIXED_STEP = 1000 / 60;
 
 function loop(currentTime = performance.now()) {
   let elapsed = currentTime - lastFrameTime;
@@ -1051,7 +1324,6 @@ function switchTab(tab) {
   });
 }
 
-// Populate Letter, Gallery, and Videos Content from Config
 function initLetterDOM() {
   document.getElementById("letterTitle").textContent = CONFIG.letter.title;
   document.getElementById("letterDate").textContent = CONFIG.letter.date;
