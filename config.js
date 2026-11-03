@@ -13,48 +13,48 @@ const CONFIG = {
     "Buka gerbang ulang tahun di ujung perjalanan ya! Semangat! ❤️"
   ],
 
-  // Item collectible + pesan + foto memori
+  // Item collectible + pesan + foto memori (disesuaikan dengan foto asli)
   collectibles: [
     { 
       type: "boba", 
-      name: "Boba Brown Sugar", 
-      note: "Boba favorit kamu! Jangan ngambek lagi ya kalau telat pesan~ 🧋",
+      name: "Makan Udon Berdua", 
+      note: "Muka bahagia kamu waktu makan udon enak! Selalu gemes liat kamu makan lahap begini~ 🍜😋",
       photo: "assets/photos/photo_2026-11-03_09-28-22.jpg"
     },
     { 
       type: "flower", 
-      name: "Buket Bunga", 
-      note: "Bunga cantik buat orang paling cantik di dunia! 🌸",
+      name: "Pose Bibir Manyun", 
+      note: "Pose andalan kalau lagi iseng atau ngeledek! Biarpun manyun tetep paling manis sedunia~ 😚✨",
       photo: "assets/photos/photo_2026-11-03_09-28-23.jpg"
     },
     { 
       type: "letter", 
-      name: "Surat Cinta", 
-      note: "Satu dari sejuta alasan kenapa aku sayang banget sama kamu. 💌",
+      name: "Tatapan Muka Judes", 
+      note: "Kamera diarahkan, muka langsung pasang ekspresi skeptical! Galak-galak tapi ngangenin~ 😜❤️",
       photo: "assets/photos/photo_2026-11-03_09-28-24.jpg"
     },
     { 
       type: "cat", 
-      name: "Kucing Lucu", 
-      note: "Lucunya mirip kamu kalau lagi manja! 🐱",
+      name: "Video Call Kocak", 
+      note: "Momen video call malem-malem sambil melet & peluk bantal. Selalu nemenin sebelum tidur! 📱🛌",
       photo: "assets/photos/photo_2026-11-03_09-28-25.jpg"
     },
     { 
       type: "key1", 
-      name: "Kunci Emas 1", 
-      note: "Kunci 1/3: Kunci tawa kita berdua! 🔑",
+      name: "Kunci 1: Boba & Winky Face", 
+      note: "Kencan beli matcha & jajanan event bareng! Seru banget jalan desak-desakan tapi berdua~ 🥤😉",
       photo: "assets/photos/photo_2026-11-03_09-28-46.jpg"
     },
     { 
       type: "key2", 
-      name: "Kunci Emas 2", 
-      note: "Kunci 2/3: Kunci cerita manis kita! 🔑",
+      name: "Kunci 2: Candid Cantik di Kafe", 
+      note: "Duduk santai di kafe kaca sambil lirik pemandangan. Senyum manisnya bikin adem hati! ☕🌿",
       photo: "assets/photos/photo_2026-11-03_09-28-47.jpg"
     },
     { 
       type: "key3", 
-      name: "Kunci Emas 3", 
-      note: "Kunci 3/3: Gerbang kado terbuka! 🔑",
+      name: "Kunci 3: Senyum Manis Behel", 
+      note: "Senyum paling mempesona yang selalu bikin hari-hariku cerah! I love your pretty smile! 😁💖",
       photo: "assets/photos/photo_2026-11-03_09-28-48.jpg"
     },
   ],

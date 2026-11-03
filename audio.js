@@ -78,6 +78,16 @@ class RetroAudio {
     this.playTone(880.00, "square", 0.25, 0.24, 0.18);
   }
 
+  hurt() {
+    this.playTone(220, "sawtooth", 0.12, 0, 0.15);
+    this.playTone(160, "sawtooth", 0.15, 0.08, 0.15);
+  }
+
+  clawWhoosh() {
+    this.playTone(800, "square", 0.04, 0, 0.05);
+    this.playTone(600, "square", 0.04, 0.03, 0.05);
+  }
+
   blowCandle() {
     // Noise burst simulation
     if (this.muted) return;

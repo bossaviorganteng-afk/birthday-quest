@@ -65,8 +65,12 @@ const player = {
   grounded: false,
   facing: "right",
   frame: 0,
-  frameTimer: 0
+  frameTimer: 0,
+  invulnerableTimer: 0
 };
+
+// Projectiles thrown by enemy cats
+let catClaws = [];
 
 // Level definitions
 const level1 = {
@@ -91,6 +95,11 @@ const level1 = {
     { type: "letter", x: 1160, y: 180, collected: false },
     { type: "cat", x: 2000, y: 190, collected: false },
   ],
+  cats: [
+    { x: 820, y: 356, minX: 770, maxX: 980, vx: 1.2, width: 28, height: 24, throwCooldown: 90, facing: "right", frame: 0 },
+    { x: 1320, y: 266, minX: 1300, maxX: 1440, vx: -1.0, width: 28, height: 24, throwCooldown: 120, facing: "left", frame: 0 },
+    { x: 1700, y: 356, minX: 1620, maxX: 1880, vx: 1.3, width: 28, height: 24, throwCooldown: 80, facing: "right", frame: 0 }
+  ],
   portal: { x: 2300, y: 300, w: 50, h: 80, text: "NEXT STAGE ->" }
 };
 
@@ -114,6 +123,12 @@ const level2 = {
     { type: "key1", x: 680, y: 130, collected: false },
     { type: "key2", x: 1460, y: 150, collected: false },
     { type: "key3", x: 2260, y: 230, collected: false },
+  ],
+  cats: [
+    { x: 840, y: 236, minX: 820, maxX: 960, vx: 1.2, width: 28, height: 24, throwCooldown: 75, facing: "right", frame: 0 },
+    { x: 1100, y: 356, minX: 1060, maxX: 1240, vx: 1.4, width: 28, height: 24, throwCooldown: 85, facing: "right", frame: 0 },
+    { x: 1660, y: 226, minX: 1650, maxX: 1780, vx: -1.1, width: 28, height: 24, throwCooldown: 95, facing: "left", frame: 0 },
+    { x: 2100, y: 356, minX: 2060, maxX: 2300, vx: 1.3, width: 28, height: 24, throwCooldown: 80, facing: "right", frame: 0 }
   ],
   gate: { x: 2450, y: 280, w: 60, h: 100, locked: true }
 };
@@ -188,6 +203,12 @@ function drawCuteGirl(x, y, facing, frame) {
   drawPixelRect(18, 2 + bounce, 6, 4, "#e63946");
   drawPixelRect(20, 1 + bounce, 2, 6, "#ff4d6d");
 
+  // Invulnerability blink effect
+  if (player.invulnerableTimer > 0 && Math.floor(player.invulnerableTimer / 4) % 2 === 0) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.fillRect(0, 0, player.width, player.height);
+  }
+
   ctx.restore();
 }
 
@@ -218,6 +239,79 @@ function drawBoyfriend(x, y, facing) {
   drawPixelRect(3, 4, 5, 6, "#1f2421");
 
   drawPixelRect(20, 24, 6, 6, "#ff4d6d");
+
+  ctx.restore();
+}
+
+// Draw Walking Enemy NPC Cat
+function drawEnemyCat(cat) {
+  ctx.save();
+  ctx.translate(Math.floor(cat.x), Math.floor(cat.y));
+  if (cat.facing === "right") {
+    ctx.scale(-1, 1);
+    ctx.translate(-cat.width, 0);
+  }
+
+  const bounce = (Math.floor(cat.frame) % 2 === 1) ? -1 : 0;
+
+  // Shadow
+  drawPixelRect(2, 22, 24, 3, "rgba(0,0,0,0.25)");
+
+  // Calico / Mischievous Dark Orange Body
+  drawPixelRect(4, 8 + bounce, 18, 12, "#e76f51");
+  drawPixelRect(8, 10 + bounce, 6, 6, "#f4a261"); // lighter belly patch
+
+  // Head
+  drawPixelRect(16, 4 + bounce, 12, 11, "#e76f51");
+
+  // Pointy Ears
+  drawPixelRect(18, 0 + bounce, 3, 4, "#d90429");
+  drawPixelRect(25, 0 + bounce, 3, 4, "#d90429");
+
+  // Sneaky / Angry Cat Eyes (glowing yellow/green with slit pupil)
+  drawPixelRect(22, 7 + bounce, 3, 3, "#ffea00");
+  drawPixelRect(23, 7 + bounce, 1, 3, "#111111");
+
+  // Mischievous smirk / nose
+  drawPixelRect(26, 9 + bounce, 2, 2, "#9d0208");
+
+  // Legs walking
+  const legShift = (Math.floor(cat.frame) % 2 === 1) ? 2 : -2;
+  drawPixelRect(6 + legShift, 20, 4, 3, "#bc4749");
+  drawPixelRect(14 - legShift, 20, 4, 3, "#bc4749");
+
+  // Curved Tail wagging
+  const tailBob = Math.sin(cat.frame * 0.4) * 2;
+  drawPixelRect(1, 4 + bounce + tailBob, 3, 8, "#e76f51");
+  drawPixelRect(0, 2 + bounce + tailBob, 3, 3, "#f4a261");
+
+  // Poison aura / skull smoke above cat
+  if (Math.floor(cat.frame * 0.5) % 2 === 0) {
+    drawPixelRect(14, -6, 3, 3, "#a7c957");
+    drawPixelRect(20, -8, 2, 2, "#70e000");
+  }
+
+  ctx.restore();
+}
+
+// Draw Flying Poison Claw Projectile
+function drawPoisonClaw(claw) {
+  ctx.save();
+  ctx.translate(Math.floor(claw.x), Math.floor(claw.y));
+  ctx.rotate(claw.rotation);
+
+  // 3 Curved Poisonous Claws
+  ctx.fillStyle = "#38b000"; // Toxic green glow
+  ctx.fillRect(-6, -6, 12, 12);
+
+  ctx.fillStyle = "#9ef01a";
+  ctx.fillRect(-4, -4, 8, 8);
+
+  ctx.fillStyle = "#ffffff";
+  // 3 sharp claw tips
+  ctx.fillRect(-5, -5, 2, 4);
+  ctx.fillRect(-1, -6, 2, 5);
+  ctx.fillRect(3, -5, 2, 4);
 
   ctx.restore();
 }
@@ -372,6 +466,100 @@ function updateGame() {
     player.vy = 0;
   }
 
+  if (player.invulnerableTimer > 0) {
+    player.invulnerableTimer--;
+  }
+
+  // Update Cat NPCs (Patrol, Animate & Throw Poison Claws)
+  if (currentStage.cats) {
+    currentStage.cats.forEach(cat => {
+      cat.x += cat.vx;
+      cat.frame += 0.15;
+      if (cat.x < cat.minX) {
+        cat.x = cat.minX;
+        cat.vx = Math.abs(cat.vx);
+        cat.facing = "right";
+      } else if (cat.x > cat.maxX) {
+        cat.x = cat.maxX;
+        cat.vx = -Math.abs(cat.vx);
+        cat.facing = "left";
+      }
+
+      // Throw poisonous claws towards player if within range
+      cat.throwCooldown--;
+      const distToPlayer = Math.hypot((player.x + player.width / 2) - (cat.x + cat.width / 2), (player.y + player.height / 2) - (cat.y + cat.height / 2));
+      if (distToPlayer < 400 && cat.throwCooldown <= 0) {
+        cat.throwCooldown = 90 + Math.floor(Math.random() * 40);
+        const dir = (player.x > cat.x) ? 1 : -1;
+        cat.facing = (dir === 1) ? "right" : "left";
+        catClaws.push({
+          x: cat.x + cat.width / 2,
+          y: cat.y + 6,
+          vx: dir * (2.8 + Math.random() * 0.8),
+          vy: -1.8 + (player.y - cat.y) * 0.008,
+          rotation: 0,
+          rotSpeed: dir * 0.2,
+          life: 140
+        });
+        audio.clawWhoosh();
+      }
+
+      // Direct collision with cat
+      if (player.invulnerableTimer <= 0) {
+        if (
+          player.x + player.width > cat.x &&
+          player.x < cat.x + cat.width &&
+          player.y + player.height > cat.y &&
+          player.y < cat.y + cat.height
+        ) {
+          triggerPlayerHurt();
+        }
+      }
+    });
+  }
+
+  // Update Poison Claws Projectiles
+  for (let i = catClaws.length - 1; i >= 0; i--) {
+    const claw = catClaws[i];
+    claw.x += claw.vx;
+    claw.y += claw.vy;
+    claw.vy += 0.04;
+    claw.rotation += claw.rotSpeed;
+    claw.life--;
+
+    // Toxic green sparkle trail
+    if (Math.random() < 0.4) {
+      particles.push({
+        x: claw.x,
+        y: claw.y,
+        vx: (Math.random() - 0.5) * 0.8,
+        vy: (Math.random() - 0.5) * 0.8,
+        color: "#70e000",
+        size: 2.5,
+        life: 15
+      });
+    }
+
+    // Check hit player
+    if (player.invulnerableTimer <= 0) {
+      if (
+        claw.x > player.x &&
+        claw.x < player.x + player.width &&
+        claw.y > player.y &&
+        claw.y < player.y + player.height
+      ) {
+        triggerPlayerHurt();
+        addSparkles(claw.x, claw.y, "#70e000", 10);
+        catClaws.splice(i, 1);
+        continue;
+      }
+    }
+
+    if (claw.life <= 0 || claw.y > GAME_HEIGHT) {
+      catClaws.splice(i, 1);
+    }
+  }
+
   const targetCamX = player.x - GAME_WIDTH / 2;
   cameraX += (targetCamX - cameraX) * 0.1;
   cameraX = Math.max(0, Math.min(cameraX, currentStage.width - GAME_WIDTH));
@@ -410,8 +598,9 @@ function updateGame() {
       currentLevel = 2;
       player.x = 60;
       player.y = 250;
+      catClaws = [];
       cameraX = 0;
-      showFloatingNote("STAGE 2: Temukan 3 Kunci Emas untuk membuka Gerbang Ultah!");
+      showFloatingNote("STAGE 2: Temukan 3 Kunci Emas! Awas kucing jahil bertambah! 🐱⚡");
       audio.key();
     }
   }
@@ -428,6 +617,19 @@ function updateGame() {
   }
 }
 
+function triggerPlayerHurt() {
+  player.invulnerableTimer = 60; // 1 second invulnerability
+  audio.hurt();
+  showFloatingNote("Aww! Kena cakar kuku beracun! Hati-hati sayang! 🐾⚡");
+
+  // Knockback opposite to facing direction
+  player.vy = -5.5;
+  player.vx = (player.facing === "right") ? -4 : 4;
+
+  // Hurt sparkles
+  addSparkles(player.x + player.width / 2, player.y + player.height / 2, "#9ef01a", 16);
+}
+
 function showFloatingNote(text) {
   activeMessage = text;
   messageTimer = 220;
@@ -435,6 +637,7 @@ function showFloatingNote(text) {
 
 function enterCelebration() {
   gameState = "WON";
+  catClaws = [];
   document.getElementById("celebrationUI").classList.remove("hidden");
   audio.playHappyBirthdayTune();
 
@@ -569,6 +772,18 @@ function renderWorld() {
     ctx.font = "10px monospace";
     ctx.fillText(g.locked ? `LOCKED (${keysCount}/3)` : "OPEN!", g.x - 5, g.y - 12);
   }
+
+  // Draw Enemy NPC Cats
+  if (stage.cats) {
+    stage.cats.forEach(cat => {
+      drawEnemyCat(cat);
+    });
+  }
+
+  // Draw Poison Claws
+  catClaws.forEach(claw => {
+    drawPoisonClaw(claw);
+  });
 
   drawCuteGirl(player.x, player.y, player.facing, player.frame);
 
