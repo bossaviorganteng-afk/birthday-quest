@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Birthday Quest: The Road to 19 December ✨</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="arcade-cabinet">
+    <header class="cabinet-header">
+      <div class="title-bar">
+        <span class="pixel-star">⭐</span>
+        <h1>BIRTHDAY QUEST 19.12</h1>
+        <span class="pixel-star">⭐</span>
+      </div>
+      <button id="btnMute" class="retro-btn btn-sm">🔊 Sound ON</button>
+    </header>
+
+    <div class="canvas-wrapper">
+      <canvas id="gameCanvas"></canvas>
+
+      <!-- Overlay Layar Awal -->
+      <div id="startOverlay" class="screen-overlay">
+        <div class="pixel-card">
+          <div class="badge-tag">EDISI SPESIAL</div>
+          <h2>BIRTHDAY QUEST</h2>
+          <p class="subtitle">Petualangan Spesial 19 Desember 2026</p>
+          <div class="instructions-box">
+            <p><strong>Cara Main:</strong></p>
+            <p>⬅️ ➡️ / A, D : Jalan</p>
+            <p>⬆️ / W / Spasi : Lompat</p>
+            <p>📱 Di HP : Pakai tombol kontrol di layar bawah</p>
+            <p class="mission-hint">✨ Kumpulkan semua memori & temukan gerbang rahasia!</p>
+          </div>
+          <button class="retro-btn btn-start" onclick="startGame()">▶ MULAI PETUALANGAN</button>
+        </div>
+      </div>
+
+      <!-- Celebration & Letter Modal -->
+      <div id="letterModal" class="modal-overlay hidden">
+        <div class="letter-card">
+          <button class="modal-close" onclick="document.getElementById('letterModal').classList.add('hidden')">✕</button>
+          <div class="envelope-ribbon">💌 SPECIAL BIRTHDAY LETTER</div>
+          <h2 id="letterTitle" class="letter-title">Happy Birthday!</h2>
+          <div id="letterDate" class="letter-date">19 Desember 2026</div>
+          <div class="letter-divider">🌸 ✨ 🌸</div>
+          <div id="letterParagraphs" class="letter-body">
+            <!-- Isi surat di-load dari config.js -->
+          </div>
+          <div id="letterSender" class="letter-footer"></div>
+          
+          <div class="modal-actions">
+            <a id="btnClaimWA" href="#" target="_blank" class="retro-btn btn-wa">
+              🎁 Klaim Kado Spesial via WhatsApp
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Celebration Extra Info -->
+      <div id="celebrationUI" class="celebration-hud hidden">
+        <div class="cake-prompt-badge">🎂 Klik atau sentuh lilin untuk meniupnya! 🕯️</div>
+      </div>
+    </div>
+
+    <!-- Mobile Virtual Controls -->
+    <div class="mobile-controls">
+      <div class="dpad-left">
+        <button id="btnLeft" class="touch-btn">◀</button>
+        <button id="btnRight" class="touch-btn">▶</button>
+      </div>
+      <div class="dpad-right">
+        <button id="btnJump" class="touch-btn btn-action">JUMP</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="audio.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
