@@ -26,6 +26,25 @@ let cameraX = 0;
 let particles = [];
 let fireworks = [];
 
+// Preload photo images for floating clouds
+const photoImages = CONFIG.gallery.map(src => {
+  const img = new Image();
+  img.src = src;
+  return img;
+});
+
+// Floating clouds carrying couple photos
+const floatingClouds = [
+  { x: 120, y: 65, speed: 0.35, photoIndex: 0, bobPhase: 0, scale: 0.95 },
+  { x: 480, y: 110, speed: 0.25, photoIndex: 1, bobPhase: 1.2, scale: 0.85 },
+  { x: 840, y: 60, speed: 0.4, photoIndex: 2, bobPhase: 2.5, scale: 1.0 },
+  { x: 1200, y: 115, speed: 0.3, photoIndex: 3, bobPhase: 3.8, scale: 0.9 },
+  { x: 1560, y: 75, speed: 0.38, photoIndex: 4, bobPhase: 0.8, scale: 1.05 },
+  { x: 1920, y: 110, speed: 0.28, photoIndex: 5, bobPhase: 4.5, scale: 0.88 },
+  { x: 2280, y: 70, speed: 0.32, photoIndex: 6, bobPhase: 2.1, scale: 0.95 },
+  { x: 2640, y: 105, speed: 0.36, photoIndex: 7, bobPhase: 5.2, scale: 1.0 },
+];
+
 // Input handler
 const keys = {
   left: false,
@@ -426,7 +445,66 @@ function enterCelebration() {
   }, 500);
 }
 
-function renderBackground() {
+function drawPhotoCloud(cloud, time) {
+  const totalWorldWidth = 2800;
+  const screenX = ((cloud.x - cameraX * 0.35) % totalWorldWidth + totalWorldWidth) % totalWorldWidth - 150;
+  if (screenX < -200 || screenX > GAME_WIDTH + 150) return;
+
+  const bob = Math.sin(time * 0.002 + cloud.bobPhase) * 6;
+  const drawY = cloud.y + bob;
+
+  ctx.save();
+  ctx.translate(screenX, drawY);
+  ctx.scale(cloud.scale, cloud.scale);
+
+  // Soft glowing white cloud puffs
+  ctx.fillStyle = "rgba(255, 255, 255, 0.93)";
+  ctx.beginPath();
+  ctx.arc(-38, 8, 28, 0, Math.PI * 2);
+  ctx.arc(-12, -12, 32, 0, Math.PI * 2);
+  ctx.arc(22, -14, 34, 0, Math.PI * 2);
+  ctx.arc(52, 8, 26, 0, Math.PI * 2);
+  ctx.arc(8, 16, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Photo circle frame in center of cloud
+  const img = photoImages[cloud.photoIndex % photoImages.length];
+  const photoRadius = 24;
+  const photoCenterX = 5;
+  const photoCenterY = 2;
+
+  // Gold & pink border around photo
+  ctx.beginPath();
+  ctx.arc(photoCenterX, photoCenterY, photoRadius + 3, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffd166";
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = "#ff70a6";
+  ctx.stroke();
+
+  // Clipped circular photo
+  if (img && img.complete && img.naturalWidth > 0) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(photoCenterX, photoCenterY, photoRadius, 0, Math.PI * 2);
+    ctx.clip();
+    
+    const sDim = Math.min(img.naturalWidth, img.naturalHeight);
+    const sX = (img.naturalWidth - sDim) / 2;
+    const sY = (img.naturalHeight - sDim) / 2;
+    ctx.drawImage(img, sX, sY, sDim, sDim, photoCenterX - photoRadius, photoCenterY - photoRadius, photoRadius * 2, photoRadius * 2);
+    ctx.restore();
+  }
+
+  // Cute heart icon
+  ctx.fillStyle = "#ff0054";
+  ctx.font = "bold 13px sans-serif";
+  ctx.fillText("❤️", photoCenterX + 14, photoCenterY - 14);
+
+  ctx.restore();
+}
+
+function renderBackground(time = performance.now()) {
   const grad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
   grad.addColorStop(0, "#ffe5ec");
   grad.addColorStop(0.6, "#ffcad4");
@@ -434,16 +512,22 @@ function renderBackground() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-  ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
-  for (let i = 0; i < 8; i++) {
-    const cx = ((i * 350 - cameraX * 0.3) % (GAME_WIDTH + 200)) - 100;
-    const cy = 60 + (i % 3) * 40;
+  // Background distant clouds
+  ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
+  for (let i = 0; i < 5; i++) {
+    const cx = ((i * 450 - cameraX * 0.15) % (GAME_WIDTH + 200)) - 100;
+    const cy = 40 + (i % 2) * 50;
     ctx.beginPath();
-    ctx.arc(cx, cy, 30, 0, Math.PI * 2);
-    ctx.arc(cx + 25, cy - 10, 25, 0, Math.PI * 2);
-    ctx.arc(cx + 50, cy, 30, 0, Math.PI * 2);
+    ctx.arc(cx, cy, 25, 0, Math.PI * 2);
+    ctx.arc(cx + 20, cy - 8, 20, 0, Math.PI * 2);
+    ctx.arc(cx + 40, cy, 25, 0, Math.PI * 2);
     ctx.fill();
   }
+
+  // Floating Photo Clouds
+  floatingClouds.forEach(cloud => {
+    drawPhotoCloud(cloud, time);
+  });
 }
 
 function renderWorld() {
@@ -545,13 +629,12 @@ function renderCelebration() {
   }
 }
 
-function renderParticles() {
+function updateParticles() {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
     p.x += p.vx;
     p.y += p.vy;
     p.life--;
-    drawPixelRect(p.x, p.y, p.size, p.size, p.color);
     if (p.life <= 0) particles.splice(i, 1);
   }
 
@@ -561,8 +644,19 @@ function renderParticles() {
     f.y += f.vy;
     f.vy += 0.05;
     f.life--;
-    drawPixelRect(f.x, f.y, f.size, f.size, f.color);
     if (f.life <= 0) fireworks.splice(i, 1);
+  }
+}
+
+function renderParticles() {
+  for (let i = 0; i < particles.length; i++) {
+    const p = particles[i];
+    drawPixelRect(p.x, p.y, p.size, p.size, p.color);
+  }
+
+  for (let i = 0; i < fireworks.length; i++) {
+    const f = fireworks[i];
+    drawPixelRect(f.x, f.y, f.size, f.size, f.color);
   }
 }
 
@@ -650,12 +744,35 @@ function startGame() {
   showFloatingNote("Gunakan Tombol Panah / WASD untuk jalan dan melompat!");
 }
 
-function loop() {
+let lastFrameTime = performance.now();
+let accumulator = 0;
+const FIXED_STEP = 1000 / 60; // Standard 60 FPS physics
+
+function loop(currentTime = performance.now()) {
+  let elapsed = currentTime - lastFrameTime;
+  lastFrameTime = currentTime;
+
+  if (elapsed > 100) elapsed = 100;
+  if (elapsed < 0) elapsed = 0;
+
+  accumulator += elapsed;
+
+  while (accumulator >= FIXED_STEP) {
+    if (gameState === "PLAYING" || gameState === "INTRO") {
+      updateGame();
+      floatingClouds.forEach(c => {
+        c.x -= c.speed;
+        if (c.x < -200) c.x += 2800;
+      });
+    }
+    updateParticles();
+    accumulator -= FIXED_STEP;
+  }
+
   ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
   if (gameState === "PLAYING" || gameState === "INTRO") {
-    renderBackground();
-    updateGame();
+    renderBackground(currentTime);
     renderWorld();
     renderHUD();
   } else if (gameState === "WON") {

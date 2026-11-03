@@ -91,6 +91,6 @@ const CONFIG = {
     sender: "Sodus"
   },
 
-  whatsappNumber: "6281234567890",
-  whatsappText: "Halo sayang, aku udah namatin Birthday Quest-nya nih! Mana kado spesialnya? 🎁❤️"
+  whatsappNumber: "6285792563057",
+  whatsappText: "sayangggg, aku udah selesaiin gamenya, kadonya manaaa????!!!"
 };
