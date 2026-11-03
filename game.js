@@ -11,14 +11,14 @@ let GAME_HEIGHT = 450;
 let isPortraitMode = false;
 
 function updateCanvasResolution() {
-  const isPortrait = window.matchMedia("(max-width: 768px) and (orientation: portrait), (max-width: 600px)").matches;
+  const isPortrait = window.innerWidth < 768 && window.innerHeight > window.innerWidth;
   if (isPortrait) {
-    // 9:16 Portrait
+    // 9:16 Portrait on mobile
     GAME_WIDTH = 450;
     GAME_HEIGHT = 800;
     isPortraitMode = true;
   } else {
-    // 16:9 Landscape
+    // 16:9 Landscape on desktop/laptop
     GAME_WIDTH = 800;
     GAME_HEIGHT = 450;
     isPortraitMode = false;
@@ -403,34 +403,39 @@ function drawEnemyCat(cat) {
 
   const bounce = (Math.floor(cat.frame) % 2 === 1) ? -1 : 0;
 
-  drawPixelRect(2, 22, 24, 3, "rgba(0,0,0,0.25)");
+  drawPixelRect(2, 22, 24, 3, "rgba(0,0,0,0.35)");
 
-  // Orange Body
-  drawPixelRect(4, 8 + bounce, 18, 12, "#e76f51");
-  drawPixelRect(8, 10 + bounce, 6, 6, "#f4a261");
+  // Sleek Black Cat Body
+  drawPixelRect(4, 8 + bounce, 18, 12, "#18181b");
+  drawPixelRect(8, 11 + bounce, 6, 5, "#27272a"); // subtle dark chest sheen
 
   // Head
-  drawPixelRect(16, 4 + bounce, 12, 11, "#e76f51");
+  drawPixelRect(16, 4 + bounce, 12, 11, "#18181b");
 
-  // Pointy Ears
-  drawPixelRect(18, 0 + bounce, 3, 4, "#d90429");
-  drawPixelRect(25, 0 + bounce, 3, 4, "#d90429");
+  // Pointy Black Ears with Pink Inside
+  drawPixelRect(18, 0 + bounce, 3, 4, "#09090b");
+  drawPixelRect(25, 0 + bounce, 3, 4, "#09090b");
+  drawPixelRect(19, 1 + bounce, 1, 2, "#ff758f");
+  drawPixelRect(26, 1 + bounce, 1, 2, "#ff758f");
 
-  // Cat Eyes
-  drawPixelRect(22, 7 + bounce, 3, 3, "#ffea00");
-  drawPixelRect(23, 7 + bounce, 1, 3, "#111111");
+  // Striking Bright Yellow-Green Glowing Eyes (Khas Kucing Hitam)
+  drawPixelRect(22, 7 + bounce, 3, 3, "#a7c957");
+  drawPixelRect(23, 7 + bounce, 1, 3, "#09090b"); // Cat slit pupil
+  drawPixelRect(22, 7 + bounce, 1, 1, "#ffffff"); // Eye sparkle
 
-  drawPixelRect(26, 9 + bounce, 2, 2, "#9d0208");
+  // Cute Little Pink Nose & White Whiskers
+  drawPixelRect(27, 9 + bounce, 1, 1, "#ff758f");
+  drawPixelRect(25, 11 + bounce, 3, 1, "rgba(255,255,255,0.7)");
 
-  // Legs walking
+  // Black Legs walking
   const legShift = (Math.floor(cat.frame) % 2 === 1) ? 2 : -2;
-  drawPixelRect(6 + legShift, 20, 4, 3, "#bc4749");
-  drawPixelRect(14 - legShift, 20, 4, 3, "#bc4749");
+  drawPixelRect(6 + legShift, 20, 4, 3, "#09090b");
+  drawPixelRect(14 - legShift, 20, 4, 3, "#09090b");
 
-  // Tail
+  // Sleek Black Tail waving
   const tailBob = Math.sin(cat.frame * 0.4) * 2;
-  drawPixelRect(1, 4 + bounce + tailBob, 3, 8, "#e76f51");
-  drawPixelRect(0, 2 + bounce + tailBob, 3, 3, "#f4a261");
+  drawPixelRect(1, 4 + bounce + tailBob, 3, 8, "#18181b");
+  drawPixelRect(0, 2 + bounce + tailBob, 3, 3, "#27272a");
 
   // Poison aura
   if (Math.floor(cat.frame * 0.5) % 2 === 0) {
@@ -796,8 +801,11 @@ function updateGame() {
         if (item.type.startsWith("key")) {
           keysCount++;
           audio.key();
-          if (keysCount >= keysNeeded && currentStage.gate) {
-            currentStage.gate.locked = false;
+          // Unlock any gate in stages if 3 keys reached
+          if (keysCount >= keysNeeded) {
+            stages.forEach(s => {
+              if (s.gate) s.gate.locked = false;
+            });
             showFloatingNote("Semua 3 Kunci Emas terkumpul! Gerbang Istana Terbuka!");
           }
         } else {
@@ -841,8 +849,12 @@ function updateGame() {
   // Stage 5 Final Birthday Gate
   if (currentStage.gate) {
     const g = currentStage.gate;
+    if (keysCount >= keysNeeded) {
+      g.locked = false;
+    }
     if (player.x + player.width > g.x && player.x < g.x + g.w && player.y + player.height > g.y) {
-      if (!g.locked) {
+      if (keysCount >= keysNeeded) {
+        g.locked = false;
         enterCelebration();
       } else {
         showFloatingNote(`Gerbang terkunci! Kumpulkan semua 3 Kunci Emas dulu! (${keysCount}/3)`);
