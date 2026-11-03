@@ -5,19 +5,19 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-// Responsive game resolution
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 450;
 canvas.width = GAME_WIDTH;
 canvas.height = GAME_HEIGHT;
 
-let gameState = "INTRO"; // INTRO, PLAYING, WON
+let gameState = "INTRO";
 let currentLevel = 1;
 let collectedItems = [];
 let keysCount = 0;
 let keysNeeded = 3;
 let activeMessage = null;
 let messageTimer = 0;
+let popupTimer = null;
 
 // Camera
 let cameraX = 0;
@@ -142,20 +142,19 @@ function drawCuteGirl(x, y, facing, frame) {
   drawPixelRect(4, 38, 8, 4, "#ff70a6");
   drawPixelRect(16, 38, 8, 4, "#ff70a6");
 
-  // Dress (Cute Pink Pastel)
+  // Dress
   drawPixelRect(5, 20 + bounce, 18, 14, "#ff85a1");
   drawPixelRect(3, 28 + bounce, 22, 6, "#ff6392");
-  // Collar
   drawPixelRect(9, 20 + bounce, 10, 3, "#fff");
 
   // Head / Skin
   drawPixelRect(6, 4 + bounce, 16, 16, "#ffdfba");
 
-  // Cheeks (blush)
+  // Cheeks
   drawPixelRect(7, 14 + bounce, 3, 2, "#ff9ebb");
   drawPixelRect(18, 14 + bounce, 3, 2, "#ff9ebb");
 
-  // Eyes (Big cute pixel eyes)
+  // Eyes
   drawPixelRect(10, 11 + bounce, 2, 4, "#2d3436");
   drawPixelRect(16, 11 + bounce, 2, 4, "#2d3436");
   drawPixelRect(11, 11 + bounce, 1, 2, "#fff");
@@ -166,7 +165,7 @@ function drawCuteGirl(x, y, facing, frame) {
   drawPixelRect(4, 8 + bounce, 4, 8, "#5c3317");
   drawPixelRect(20, 8 + bounce, 4, 8, "#5c3317");
 
-  // Cute Red/Pink Ribbon Hairclip
+  // Ribbon Hairclip
   drawPixelRect(18, 2 + bounce, 6, 4, "#e63946");
   drawPixelRect(20, 1 + bounce, 2, 6, "#ff4d6d");
 
@@ -180,97 +179,73 @@ function drawBoyfriend(x, y, facing) {
     ctx.scale(-1, 1);
     ctx.translate(-player.width, 0);
   }
-  // Shadow
   drawPixelRect(2, 38, 24, 4, "rgba(0,0,0,0.2)");
 
-  // Legs & Shoes
   drawPixelRect(6, 32, 6, 8, "#1d3557");
   drawPixelRect(16, 32, 6, 8, "#1d3557");
   drawPixelRect(4, 38, 8, 4, "#2b2d42");
   drawPixelRect(16, 38, 8, 4, "#2b2d42");
 
-  // Hoodie / Jacket (Navy/Teal)
   drawPixelRect(5, 19, 18, 14, "#457b9d");
   drawPixelRect(9, 19, 10, 4, "#a8dadc");
 
-  // Head / Skin
   drawPixelRect(6, 4, 16, 15, "#ffe3d1");
 
-  // Eyes & Smile
   drawPixelRect(11, 11, 2, 3, "#111");
   drawPixelRect(16, 11, 2, 3, "#111");
   drawPixelRect(13, 15, 3, 1, "#e63946");
 
-  // Hair (Dark wavy hair)
   drawPixelRect(4, 1, 20, 6, "#1f2421");
   drawPixelRect(3, 4, 5, 6, "#1f2421");
 
-  // Holding Flowers / Heart
   drawPixelRect(20, 24, 6, 6, "#ff4d6d");
 
   ctx.restore();
 }
 
-// Draw Collectible Sprites
 function drawItemSprite(type, x, y, time) {
   const bob = Math.sin(time * 0.006) * 4;
   const drawY = y + bob;
 
   if (type === "boba") {
-    // Cup
     drawPixelRect(x + 4, drawY + 6, 14, 16, "#f4a261");
-    // Milk tea top & lid
     drawPixelRect(x + 2, drawY + 4, 18, 3, "#264653");
-    // Straw
     drawPixelRect(x + 10, drawY - 2, 3, 7, "#e76f51");
-    // Pearls
     drawPixelRect(x + 6, drawY + 16, 3, 3, "#111");
     drawPixelRect(x + 11, drawY + 17, 3, 3, "#111");
     drawPixelRect(x + 8, drawY + 12, 3, 3, "#111");
   } else if (type === "flower") {
-    // Bouquet wrap
     drawPixelRect(x + 7, drawY + 12, 10, 10, "#d4a373");
-    // Flowers
     drawPixelRect(x + 4, drawY + 4, 7, 7, "#ff006e");
     drawPixelRect(x + 13, drawY + 4, 7, 7, "#ffbe0b");
     drawPixelRect(x + 9, drawY + 1, 6, 6, "#fb5607");
-    // Stems
     drawPixelRect(x + 10, drawY + 9, 4, 4, "#55a630");
   } else if (type === "letter") {
-    // Envelope
     drawPixelRect(x + 2, drawY + 4, 20, 14, "#fdf0d5");
     drawPixelRect(x + 2, drawY + 4, 20, 2, "#c6ac8f");
-    // Heart seal
     drawPixelRect(x + 9, drawY + 8, 6, 5, "#e63946");
   } else if (type === "cat") {
-    // White Cat body
     drawPixelRect(x + 3, drawY + 8, 16, 12, "#ffffff");
-    // Ears
     drawPixelRect(x + 4, drawY + 4, 4, 4, "#ffccd5");
     drawPixelRect(x + 14, drawY + 4, 4, 4, "#ffccd5");
-    // Face
     drawPixelRect(x + 7, drawY + 11, 2, 2, "#333");
     drawPixelRect(x + 13, drawY + 11, 2, 2, "#333");
     drawPixelRect(x + 10, drawY + 13, 2, 2, "#ff758f");
-    // Tail
     drawPixelRect(x + 18, drawY + 12, 4, 6, "#fff");
   } else if (type.startsWith("key")) {
-    // Golden Key
     drawPixelRect(x + 4, drawY + 4, 10, 10, "#ffb703");
-    drawPixelRect(x + 6, drawY + 6, 6, 6, "#3a0ca3"); // ring hole
+    drawPixelRect(x + 6, drawY + 6, 6, 6, "#3a0ca3");
     drawPixelRect(x + 13, drawY + 8, 10, 4, "#ffb703");
     drawPixelRect(x + 19, drawY + 12, 4, 4, "#fb8500");
     drawPixelRect(x + 15, drawY + 12, 3, 3, "#fb8500");
   }
 
-  // Sparkles around item
   if (Math.floor(time / 200) % 2 === 0) {
     drawPixelRect(x - 2, drawY - 2, 3, 3, "#fff");
     drawPixelRect(x + 22, drawY + 10, 2, 2, "#fff");
   }
 }
 
-// Particle System
 function addSparkles(x, y, color = "#ff70a6", count = 12) {
   for (let i = 0; i < count; i++) {
     const angle = (Math.PI * 2 * i) / count + Math.random();
@@ -303,11 +278,28 @@ function addFirework(x, y) {
   }
 }
 
+// Memory Popup Trigger
+function showMemoryPopup(item) {
+  const popup = document.getElementById("memoryPopup");
+  const img = document.getElementById("popupImg");
+  const caption = document.getElementById("popupCaption");
+
+  if (popup && img && caption && item.photo) {
+    img.src = item.photo;
+    caption.textContent = item.name;
+    popup.classList.remove("hidden");
+
+    if (popupTimer) clearTimeout(popupTimer);
+    popupTimer = setTimeout(() => {
+      popup.classList.add("hidden");
+    }, 3500);
+  }
+}
+
 // Update game physics & interactions
 function updateGame() {
   if (gameState !== "PLAYING") return;
 
-  // Horizontal movement
   if (keys.left) {
     player.vx = -player.speed;
     player.facing = "left";
@@ -326,21 +318,18 @@ function updateGame() {
     player.frameTimer = 0;
   }
 
-  // Jumping
   if (keys.up && player.grounded) {
     player.vy = player.jumpPower;
     player.grounded = false;
     audio.jump();
   }
 
-  // Gravity
   player.vy += 0.42;
   if (player.vy > 10) player.vy = 10;
 
   player.x += player.vx;
   player.y += player.vy;
 
-  // Collision with platforms
   const currentStage = (currentLevel === 1) ? level1 : level2;
   player.grounded = false;
 
@@ -358,20 +347,16 @@ function updateGame() {
     }
   }
 
-  // Bottom bounds / Pit safety (respawn on platform)
   if (player.y > GAME_HEIGHT) {
     player.x = 60;
     player.y = 200;
     player.vy = 0;
   }
 
-  // Camera follows player
   const targetCamX = player.x - GAME_WIDTH / 2;
   cameraX += (targetCamX - cameraX) * 0.1;
   cameraX = Math.max(0, Math.min(cameraX, currentStage.width - GAME_WIDTH));
 
-  // Collectibles check
-  const now = performance.now();
   currentStage.items.forEach(item => {
     if (!item.collected) {
       const dist = Math.hypot((player.x + player.width / 2) - (item.x + 12), (player.y + player.height / 2) - (item.y + 12));
@@ -382,6 +367,7 @@ function updateGame() {
         const confItem = CONFIG.collectibles.find(c => c.type === item.type);
         if (confItem) {
           showFloatingNote(confItem.name + ": " + confItem.note);
+          showMemoryPopup(confItem);
         }
 
         if (item.type.startsWith("key")) {
@@ -399,7 +385,6 @@ function updateGame() {
     }
   });
 
-  // Level 1 Portal to Level 2
   if (currentLevel === 1) {
     const p = level1.portal;
     if (player.x + player.width > p.x && player.x < p.x + p.w && player.y + player.height > p.y) {
@@ -412,7 +397,6 @@ function updateGame() {
     }
   }
 
-  // Level 2 Gate to Celebration Stage
   if (currentLevel === 2) {
     const g = level2.gate;
     if (player.x + player.width > g.x && player.x < g.x + g.w && player.y + player.height > g.y) {
@@ -427,7 +411,7 @@ function updateGame() {
 
 function showFloatingNote(text) {
   activeMessage = text;
-  messageTimer = 220; // frames
+  messageTimer = 220;
 }
 
 function enterCelebration() {
@@ -435,7 +419,6 @@ function enterCelebration() {
   document.getElementById("celebrationUI").classList.remove("hidden");
   audio.playHappyBirthdayTune();
 
-  // Periodic fireworks
   setInterval(() => {
     if (gameState === "WON") {
       addFirework(150 + Math.random() * 500, 80 + Math.random() * 150);
@@ -443,9 +426,7 @@ function enterCelebration() {
   }, 500);
 }
 
-// Render background & scenery
 function renderBackground() {
-  // Pastel sky gradient
   const grad = ctx.createLinearGradient(0, 0, 0, GAME_HEIGHT);
   grad.addColorStop(0, "#ffe5ec");
   grad.addColorStop(0.6, "#ffcad4");
@@ -453,7 +434,6 @@ function renderBackground() {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-  // Parallax Clouds
   ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
   for (let i = 0; i < 8; i++) {
     const cx = ((i * 350 - cameraX * 0.3) % (GAME_WIDTH + 200)) - 100;
@@ -466,27 +446,21 @@ function renderBackground() {
   }
 }
 
-// Render World
 function renderWorld() {
   ctx.save();
   ctx.translate(-Math.floor(cameraX), 0);
 
   const stage = (currentLevel === 1) ? level1 : level2;
 
-  // Platforms
   for (let plat of stage.platforms) {
-    // Top Grass layer
     drawPixelRect(plat.x, plat.y, plat.w, 6, "#6a994e");
-    // Dirt/Stone body
     drawPixelRect(plat.x, plat.y + 6, plat.w, plat.h - 6, "#8c6239");
-    // Cute flowers/decor on grass
     for (let dx = 20; dx < plat.w; dx += 60) {
       drawPixelRect(plat.x + dx, plat.y - 4, 4, 4, "#ffb703");
       drawPixelRect(plat.x + dx + 1, plat.y - 6, 2, 2, "#e63946");
     }
   }
 
-  // Items
   const now = performance.now();
   for (let item of stage.items) {
     if (!item.collected) {
@@ -494,7 +468,6 @@ function renderWorld() {
     }
   }
 
-  // Portal or Gate
   if (currentLevel === 1) {
     const p = level1.portal;
     drawPixelRect(p.x, p.y, p.w, p.h, "#9b5de5");
@@ -507,28 +480,22 @@ function renderWorld() {
     const gateCol = g.locked ? "#d90429" : "#38b000";
     drawPixelRect(g.x, g.y, g.w, g.h, gateCol);
     drawPixelRect(g.x + 8, g.y + 8, g.w - 16, g.h - 16, "#ffe3e0");
-    // Big Heart on gate
     drawPixelRect(g.x + 20, g.y + 30, 20, 20, g.locked ? "#8d99ae" : "#ff0054");
     ctx.fillStyle = "#fff";
     ctx.font = "10px monospace";
     ctx.fillText(g.locked ? `LOCKED (${keysCount}/3)` : "OPEN!", g.x - 5, g.y - 12);
   }
 
-  // Draw Player
   drawCuteGirl(player.x, player.y, player.facing, player.frame);
 
   ctx.restore();
 }
 
-// Render Celebration Stage
 function renderCelebration() {
-  // Cozy room background
   ctx.fillStyle = "#fefae0";
   ctx.fillRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
-  // Floor
   drawPixelRect(0, 370, GAME_WIDTH, 80, "#dda15e");
-  // Wall garlands / Buntings
   const colors = ["#ff70a6", "#70d6ff", "#ffd670", "#e9ff70", "#ff9770"];
   for (let i = 0; i < GAME_WIDTH; i += 30) {
     const col = colors[(i / 30) % colors.length];
@@ -541,43 +508,33 @@ function renderCelebration() {
     ctx.fill();
   }
 
-  // Giant Birthday Cake
   const cake = celebration.cake;
-  // Tier 1 (bottom)
   drawPixelRect(cake.x - 20, cake.y + 50, cake.w + 40, 60, "#ffb4a2");
-  drawPixelRect(cake.x - 20, cake.y + 50, cake.w + 40, 10, "#ffffff"); // icing
-  // Tier 2 (top)
+  drawPixelRect(cake.x - 20, cake.y + 50, cake.w + 40, 10, "#ffffff");
   drawPixelRect(cake.x + 10, cake.y, cake.w - 20, 50, "#e5989b");
-  drawPixelRect(cake.x + 10, cake.y, cake.w - 20, 10, "#ffffff"); // icing
-  // Cherries & Strawberries
+  drawPixelRect(cake.x + 10, cake.y, cake.w - 20, 10, "#ffffff");
   for (let sx = cake.x + 18; sx < cake.x + cake.w - 10; sx += 22) {
     drawPixelRect(sx, cake.y - 6, 8, 8, "#d90429");
   }
 
-  // Candles
   celebration.candles.forEach((c) => {
     drawPixelRect(c.x, c.y, 8, 25, "#ffe6a7");
     if (c.lit) {
-      // Candle Flame Animation
       const flicker = Math.sin(performance.now() * 0.02 + c.x) * 2;
       drawPixelRect(c.x + 1 + flicker * 0.5, c.y - 12, 6, 10, "#ff9e00");
       drawPixelRect(c.x + 2 + flicker * 0.5, c.y - 9, 4, 6, "#ff0000");
       drawPixelRect(c.x + 3, c.y - 6, 2, 3, "#ffffff");
     } else {
-      // Candle wick (smoke)
       drawPixelRect(c.x + 3, c.y - 4, 2, 4, "#555");
     }
   });
 
-  // Boyfriend & Girl together
   drawBoyfriend(celebration.boyfriend.x, celebration.boyfriend.y, "right");
   drawCuteGirl(celebration.girl.x, celebration.girl.y, "left", 0);
 
-  // Big Heart above couple
   const pulse = Math.sin(performance.now() * 0.005) * 4;
   drawPixelRect(310 - pulse / 2, 280 - pulse / 2, 20 + pulse, 20 + pulse, "#ff0054");
 
-  // Instruction banner
   ctx.fillStyle = "#2b2d42";
   ctx.font = "bold 14px 'Courier New', monospace";
   ctx.textAlign = "center";
@@ -588,7 +545,6 @@ function renderCelebration() {
   }
 }
 
-// Particle rendering
 function renderParticles() {
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
@@ -603,18 +559,16 @@ function renderParticles() {
     const f = fireworks[i];
     f.x += f.vx;
     f.y += f.vy;
-    f.vy += 0.05; // gravity
+    f.vy += 0.05;
     f.life--;
     drawPixelRect(f.x, f.y, f.size, f.size, f.color);
     if (f.life <= 0) fireworks.splice(i, 1);
   }
 }
 
-// HUD Overlay
 function renderHUD() {
   if (gameState !== "PLAYING") return;
 
-  // Level & Items Status Bar
   ctx.fillStyle = "rgba(0,0,0,0.45)";
   ctx.fillRect(10, 10, GAME_WIDTH - 20, 36);
 
@@ -634,7 +588,6 @@ function renderHUD() {
   ctx.textAlign = "right";
   ctx.fillText(`Ultah: ${CONFIG.birthdayDate}`, GAME_WIDTH - 24, 32);
 
-  // Floating Notification Note
   if (activeMessage && messageTimer > 0) {
     messageTimer--;
     const alpha = Math.min(1, messageTimer / 30);
@@ -648,7 +601,6 @@ function renderHUD() {
   }
 }
 
-// Candle Click Handler
 canvas.addEventListener("click", (e) => {
   if (gameState === "INTRO") {
     startGame();
@@ -662,7 +614,6 @@ canvas.addEventListener("click", (e) => {
     const mouseX = (e.clientX - rect.left) * scaleX;
     const mouseY = (e.clientY - rect.top) * scaleY;
 
-    // Check if clicked near candles
     celebration.candles.forEach(c => {
       if (Math.hypot(mouseX - (c.x + 4), mouseY - (c.y + 10)) < 40) {
         c.lit = false;
@@ -689,6 +640,7 @@ canvas.addEventListener("click", (e) => {
 function openBirthdayLetter() {
   const modal = document.getElementById("letterModal");
   modal.classList.remove("hidden");
+  switchTab("letter");
 }
 
 function startGame() {
@@ -698,7 +650,6 @@ function startGame() {
   showFloatingNote("Gunakan Tombol Panah / WASD untuk jalan dan melompat!");
 }
 
-// Game Loop
 function loop() {
   ctx.clearRect(0, 0, GAME_WIDTH, GAME_HEIGHT);
 
@@ -757,7 +708,18 @@ if (btnMute) {
   });
 }
 
-// Populate Letter Content from Config
+// Modal Tabs
+function switchTab(tab) {
+  const tabs = ["letter", "gallery", "videos"];
+  tabs.forEach(t => {
+    const el = document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1));
+    const btn = document.getElementById("tab" + t.charAt(0).toUpperCase() + t.slice(1) + "Btn");
+    if (el) el.classList.toggle("hidden", t !== tab);
+    if (btn) btn.classList.toggle("active", t === tab);
+  });
+}
+
+// Populate Letter, Gallery, and Videos Content from Config
 function initLetterDOM() {
   document.getElementById("letterTitle").textContent = CONFIG.letter.title;
   document.getElementById("letterDate").textContent = CONFIG.letter.date;
@@ -771,6 +733,36 @@ function initLetterDOM() {
   });
 
   document.getElementById("letterSender").textContent = `${CONFIG.letter.closing}\n${CONFIG.letter.sender}`;
+
+  // Gallery
+  const galleryGrid = document.getElementById("galleryGrid");
+  if (galleryGrid) {
+    galleryGrid.innerHTML = "";
+    CONFIG.gallery.forEach((photoUrl, idx) => {
+      const card = document.createElement("div");
+      card.className = "gallery-polaroid";
+      card.innerHTML = `<img src="${photoUrl}" alt="Photo ${idx + 1}" loading="lazy">`;
+      galleryGrid.appendChild(card);
+    });
+  }
+
+  // Videos
+  const videosContainer = document.getElementById("videosContainer");
+  if (videosContainer) {
+    videosContainer.innerHTML = "";
+    CONFIG.videos.forEach(v => {
+      const card = document.createElement("div");
+      card.className = "video-card";
+      card.innerHTML = `
+        <h4>🎬 ${v.title}</h4>
+        <video controls playsinline preload="metadata">
+          <source src="${v.src}" type="video/mp4">
+          Browser kamu tidak mendukung video.
+        </video>
+      `;
+      videosContainer.appendChild(card);
+    });
+  }
 
   const waBtn = document.getElementById("btnClaimWA");
   if (waBtn) {

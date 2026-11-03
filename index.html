@@ -40,18 +40,46 @@
         </div>
       </div>
 
+      <!-- In-Game Memory Pickup Popup -->
+      <div id="memoryPopup" class="memory-popup hidden">
+        <div class="polaroid-mini">
+          <img id="popupImg" src="" alt="Memory">
+          <div id="popupCaption" class="polaroid-caption"></div>
+        </div>
+      </div>
+
       <!-- Celebration & Letter Modal -->
       <div id="letterModal" class="modal-overlay hidden">
         <div class="letter-card">
           <button class="modal-close" onclick="document.getElementById('letterModal').classList.add('hidden')">✕</button>
-          <div class="envelope-ribbon">💌 SPECIAL BIRTHDAY LETTER</div>
-          <h2 id="letterTitle" class="letter-title">Happy Birthday!</h2>
-          <div id="letterDate" class="letter-date">19 Desember 2026</div>
-          <div class="letter-divider">🌸 ✨ 🌸</div>
-          <div id="letterParagraphs" class="letter-body">
-            <!-- Isi surat di-load dari config.js -->
+          
+          <div class="modal-tabs">
+            <button id="tabLetterBtn" class="tab-btn active" onclick="switchTab('letter')">💌 Surat Cinta</button>
+            <button id="tabGalleryBtn" class="tab-btn" onclick="switchTab('gallery')">📸 Galeri Foto</button>
+            <button id="tabVideosBtn" class="tab-btn" onclick="switchTab('videos')">🎬 Video Kenangan</button>
           </div>
-          <div id="letterSender" class="letter-footer"></div>
+
+          <!-- TAB 1: SURAT CINTA -->
+          <div id="tabLetter" class="tab-content">
+            <div class="envelope-ribbon">💌 SPECIAL BIRTHDAY LETTER</div>
+            <h2 id="letterTitle" class="letter-title">Happy Birthday!</h2>
+            <div id="letterDate" class="letter-date">19 Desember 2026</div>
+            <div class="letter-divider">🌸 ✨ 🌸</div>
+            <div id="letterParagraphs" class="letter-body"></div>
+            <div id="letterSender" class="letter-footer"></div>
+          </div>
+
+          <!-- TAB 2: GALERI FOTO -->
+          <div id="tabGallery" class="tab-content hidden">
+            <h3 class="section-title">✨ Momen Manis Kita Berdua ✨</h3>
+            <div id="galleryGrid" class="gallery-grid"></div>
+          </div>
+
+          <!-- TAB 3: VIDEO KENANGAN -->
+          <div id="tabVideos" class="tab-content hidden">
+            <h3 class="section-title">🎬 Video Spesial Buat Kamu</h3>
+            <div id="videosContainer" class="videos-container"></div>
+          </div>
           
           <div class="modal-actions">
             <a id="btnClaimWA" href="#" target="_blank" class="retro-btn btn-wa">
