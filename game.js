@@ -285,8 +285,8 @@ function drawPixelRect(x, y, w, h, color) {
   ctx.fillRect(Math.floor(x), Math.floor(y), Math.floor(w), Math.floor(h));
 }
 
-// 1. Knight Kitten Sprite (Karakter Gameplay di Stage 1 - 5)
-function drawKnightKitten(x, y, facing, frame) {
+// 1. Karakter Utama Pacar Cantik dengan Pita Pink di Kepala
+function drawCuteGirl(x, y, facing, frame) {
   ctx.save();
   ctx.translate(Math.floor(x), Math.floor(y));
   if (facing === "left") {
@@ -314,107 +314,15 @@ function drawKnightKitten(x, y, facing, frame) {
   }
 
   // Shadow
-  drawPixelRect(2, 38, 24, 4, "rgba(0,0,0,0.25)");
-
-  // Billowing White Knight Cape behind
-  const capeWave = (frame % 2 === 1 && player.vx !== 0) ? -3 : 0;
-  drawPixelRect(-2 + capeWave, 16 + bounce, 7, 20, "#f8fafc");
-  drawPixelRect(0 + capeWave, 18 + bounce, 8, 19, "#e2e8f0");
-  drawPixelRect(-4 + capeWave, 22 + bounce, 5, 12, "#cbd5e1");
-
-  // Cute Tabby Tail
-  const tailBob = Math.sin((frame + performance.now() * 0.005) * 4) * 2;
-  drawPixelRect(-4, 28 + bounce + tailBob, 4, 4, "#eed9c4");
-  drawPixelRect(-6, 26 + bounce + tailBob, 3, 3, "#a06c3f");
-
-  // Armored Sabatons / Greaves (Legs)
-  const legOffset = (frame % 2 === 1 && player.vx !== 0) ? 3 : 0;
-  drawPixelRect(6, 32, 6, 8 - legOffset, "#64748b");
-  drawPixelRect(16, 32, 6, 8 + legOffset, "#64748b");
-  drawPixelRect(4, 38, 8, 4, "#94a3b8");
-  drawPixelRect(16, 38, 8, 4, "#94a3b8");
-
-  // Steel Plate Armor (Breastplate)
-  drawPixelRect(5, 18 + bounce, 18, 14, "#94a3b8");
-  drawPixelRect(7, 19 + bounce, 14, 12, "#cbd5e1");
-  drawPixelRect(9, 21 + bounce, 10, 3, "#f8fafc");
-  drawPixelRect(11, 26 + bounce, 6, 4, "#64748b");
-
-  // Pauldrons (Shoulder Armor)
-  drawPixelRect(2, 17 + bounce, 5, 6, "#64748b");
-  drawPixelRect(21, 17 + bounce, 5, 6, "#64748b");
-
-  // Tabby Kitten Head
-  drawPixelRect(5, 4 + bounce, 18, 14, "#eed9c4");
-  drawPixelRect(3, 7 + bounce, 22, 10, "#eed9c4");
-
-  // Tabby Fur Markings
-  drawPixelRect(10, 4 + bounce, 2, 4, "#a06c3f");
-  drawPixelRect(16, 4 + bounce, 2, 4, "#a06c3f");
-  drawPixelRect(13, 5 + bounce, 2, 3, "#a06c3f");
-
-  // Pointy Kitten Ears
-  drawPixelRect(4, 0 + bounce, 4, 5, "#eed9c4");
-  drawPixelRect(5, 1 + bounce, 2, 3, "#ffccd5");
-  drawPixelRect(20, 0 + bounce, 4, 5, "#eed9c4");
-  drawPixelRect(21, 1 + bounce, 2, 3, "#ffccd5");
-
-  // Pink Flower / Ribbon on Forehead
-  drawPixelRect(12, 1 + bounce, 4, 4, "#ff70a6");
-  drawPixelRect(13, 2 + bounce, 2, 2, "#ff0a54");
-  drawPixelRect(10, 2 + bounce, 2, 2, "#ffccd5");
-  drawPixelRect(16, 2 + bounce, 2, 2, "#ffccd5");
-
-  // Big Emerald Green Kitten Eyes
-  drawPixelRect(8, 10 + bounce, 3, 4, "#2b9348");
-  drawPixelRect(9, 10 + bounce, 1, 3, "#111827");
-  drawPixelRect(8, 10 + bounce, 1, 1, "#ffffff");
-  drawPixelRect(17, 10 + bounce, 3, 4, "#2b9348");
-  drawPixelRect(18, 10 + bounce, 1, 3, "#111827");
-  drawPixelRect(17, 10 + bounce, 1, 1, "#ffffff");
-
-  // Cute Pink Kitten Nose & Whiskers
-  drawPixelRect(13, 13 + bounce, 2, 2, "#ff758f");
-  drawPixelRect(4, 12 + bounce, 3, 1, "#a06c3f");
-  drawPixelRect(21, 12 + bounce, 3, 1, "#a06c3f");
-
-  // Upright European Longsword held in Armored Paws
-  drawPixelRect(11, 23 + bounce, 6, 5, "#64748b");
-  drawPixelRect(8, 20 + bounce, 12, 3, "#ffd166");
-  drawPixelRect(12, 3 + bounce, 4, 17, "#e2e8f0");
-  drawPixelRect(13, 1 + bounce, 2, 19, "#ffffff");
-  drawPixelRect(13, -1 + bounce, 2, 2, "#cbd5e1");
-  drawPixelRect(12, 28 + bounce, 4, 3, "#ffd166");
-
-  // Invulnerability blink effect
-  if (player.invulnerableTimer > 0 && Math.floor(player.invulnerableTimer / 4) % 2 === 0) {
-    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
-    ctx.fillRect(0, 0, player.width, player.height);
-  }
-
-  ctx.restore();
-}
-
-// 2. Karakter Asli Pacar Cantik (Muncul Saat Tiup Lilin di Ruang Ultah)
-function drawCuteGirl(x, y, facing, frame) {
-  ctx.save();
-  ctx.translate(Math.floor(x), Math.floor(y));
-  if (facing === "left") {
-    ctx.scale(-1, 1);
-    ctx.translate(-player.width, 0);
-  }
-
-  const bounce = (frame % 2 === 1 && player.vx !== 0) ? -2 : 0;
-
-  // Shadow
   drawPixelRect(2, 38, 24, 4, "rgba(0,0,0,0.2)");
 
   // Hair Back (Dark wavy brown hair)
   drawPixelRect(2, 6 + bounce, 24, 22, "#4a2810");
 
   // Legs / Shoes
-  drawPixelRect(6, 32, 6, 8, "#333");
-  drawPixelRect(16, 32, 6, 8, "#333");
+  const legOffset = (frame % 2 === 1 && player.vx !== 0) ? 3 : 0;
+  drawPixelRect(6, 32, 6, 8 - legOffset, "#333");
+  drawPixelRect(16, 32, 6, 8 + legOffset, "#333");
   drawPixelRect(4, 38, 8, 4, "#ff70a6");
   drawPixelRect(16, 38, 8, 4, "#ff70a6");
 
@@ -441,9 +349,17 @@ function drawCuteGirl(x, y, facing, frame) {
   drawPixelRect(4, 8 + bounce, 4, 8, "#5c3317");
   drawPixelRect(20, 8 + bounce, 4, 8, "#5c3317");
 
-  // Red/Pink Ribbon Hairclip
-  drawPixelRect(18, 2 + bounce, 6, 4, "#e63946");
-  drawPixelRect(20, 1 + bounce, 2, 6, "#ff4d6d");
+  // Pretty Big Pink Ribbon on Head (Pita Pink di atas kepala)
+  drawPixelRect(15, -1 + bounce, 9, 4, "#ff70a6");
+  drawPixelRect(18, -3 + bounce, 3, 7, "#ff0a54");
+  drawPixelRect(16, 0 + bounce, 3, 2, "#ffccd5");
+  drawPixelRect(21, 0 + bounce, 3, 2, "#ffccd5");
+
+  // Invulnerability blink effect
+  if (player.invulnerableTimer > 0 && Math.floor(player.invulnerableTimer / 4) % 2 === 0) {
+    ctx.fillStyle = "rgba(255, 255, 255, 0.65)";
+    ctx.fillRect(0, 0, player.width, player.height);
+  }
 
   ctx.restore();
 }
@@ -1134,8 +1050,8 @@ function renderWorld() {
     drawPoisonClaw(claw);
   });
 
-  // Player Character: Knight Kitten in Stages 1 - 5!
-  drawKnightKitten(player.x, player.y, player.facing, player.frame);
+  // Player Character: Cute Birthday Girl with Pink Ribbon
+  drawCuteGirl(player.x, player.y, player.facing, player.frame);
 
   ctx.restore();
 }
@@ -1255,17 +1171,16 @@ function renderHUD() {
   ctx.font = "11px 'Courier New', monospace";
   ctx.textAlign = "left";
 
-  // Knight Hero Avatar on HUD
-  const knightAvatar = photoImages[0]; // fallback
+  // Hero Avatar on HUD (Cute Ribbon)
   ctx.fillStyle = "#ffd166";
   ctx.fillRect(16, 12, 28, 28);
   ctx.fillStyle = "#ff70a6";
   ctx.fillRect(18, 14, 24, 24);
 
-  // Avatar text / icon
+  // Avatar icon
   ctx.fillStyle = "#fff";
   ctx.font = "14px sans-serif";
-  ctx.fillText("🐱", 22, 31);
+  ctx.fillText("🎀", 22, 31);
 
   const stage = stages[currentLevel - 1];
   ctx.fillText(stage.name, 52, 30);
