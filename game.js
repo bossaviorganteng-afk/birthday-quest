@@ -311,7 +311,7 @@ function showMemoryPopup(item) {
     if (popupTimer) clearTimeout(popupTimer);
     popupTimer = setTimeout(() => {
       popup.classList.add("hidden");
-    }, 3500);
+    }, 1500);
   }
 }
 
